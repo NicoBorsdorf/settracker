@@ -51,20 +51,7 @@ struct TrainingView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationBarHidden(true)
-        .sheet(isPresented: $showSetSheet) {
-            SetSheet(
-                trainingExercise: TrainingExercise(
-                    exercise: viewModel.exercises[0],
-                    category: Category.pull,
-                    duration: 0
-                ),
-                onCancel: { showSetSheet = false },
-                onSave: { set in
-                    training.exercises.append(set)
-                    showSetSheet = false
-                }
-            )
-        }
+        // Sheet provided within exerciseSection
     }
 
     private var header: some View {
@@ -230,6 +217,7 @@ struct TrainingView: View {
                             },
                             onSave: { t in
                                 training.exercises.append(t)
+                                showSetSheet = false
                             }
                         )
 
@@ -268,16 +256,21 @@ struct TrainingView: View {
 
     // MARK: - Helper Views & Methods
     func saveTraining() {
-        guard type == nil, !training.exercises.isEmpty else {
+        guard let selectedType = type, !training.exercises.isEmpty else {
             return
         }
-
-        viewModel.trainings.append(training)
+        let newTraining = Training(
+            date: training.date,
+            duration: training.duration,
+            type: selectedType,
+            exercises: training.exercises
+        )
+        viewModel.trainings.append(newTraining)
         dismiss()
     }
 
     func copyFromTraining(_ trainingId: String) {
-        let toCopy = viewModel.trainings.first(where: { $0.id == trainingId })!
+        guard let toCopy = viewModel.trainings.first(where: { $0.id == trainingId }) else { return }
         // Deep copy exercises with new IDs and duplicated sets
         let copied: [TrainingExercise] = toCopy.exercises.map { src in
             return TrainingExercise(

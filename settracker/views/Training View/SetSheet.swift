@@ -42,6 +42,13 @@ struct SetSheet: View {
                         }
                     }
                     .pickerStyle(.automatic)
+                    .onChange(of: exercise) { newExercise in
+                        trainingExercise.exercise = newExercise
+                        trainingExercise.category = newExercise?.category
+                        if newExercise?.category == Category.cardio {
+                            trainingExercise.trainingSets.removeAll()
+                        }
+                    }
                 }
                 Section {
                     if exercise?.category == Category.cardio {
@@ -74,20 +81,20 @@ struct SetSheet: View {
                                 .buttonStyle(.bordered)
                             }
 
-                            ForEach(Array(trainingExercise.trainingSets.indices), id: \.self) { index in
+                            ForEach($trainingExercise.trainingSets) { $set in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text("#\(index + 1)")
+                                    Text("#\(((indexForSet(id: set.id) ?? 0) + 1))")
                                         .frame(width: 32, alignment: .leading)
 
                                     HStack(spacing: 12) {
                                         Stepper(
-                                            value: $trainingExercise.trainingSets[index].reps,
+                                            value: $set.reps,
                                             in: 1...100
                                         ) {
                                             HStack {
                                                 Text("Reps")
                                                 Spacer()
-                                                Text("\(trainingExercise.trainingSets[index].reps)")
+                                                Text("\(set.reps)")
                                                     .foregroundColor(.secondary)
                                             }
                                         }
@@ -95,7 +102,7 @@ struct SetSheet: View {
                                         Menu {
                                             ForEach(weightOptions(), id: \.self) { w in
                                                 Button {
-                                                    trainingExercise.trainingSets[index].weight = w
+                                                    set.weight = w
                                                 } label: {
                                                     Text(weightText(w))
                                                 }
@@ -103,14 +110,14 @@ struct SetSheet: View {
                                         } label: {
                                             HStack {
                                                 Image(systemName: "scalemass")
-                                                Text(weightText(trainingExercise.trainingSets[index].weight))
+                                                Text(weightText(set.weight))
                                             }
                                         }
 
                                         Spacer()
 
                                         Button(role: .destructive) {
-                                            trainingExercise.trainingSets.remove(at: index)
+                                            trainingExercise.trainingSets.removeAll { $0.id == set.id }
                                         } label: {
                                             Image(systemName: "trash")
                                         }
@@ -136,15 +143,11 @@ struct SetSheet: View {
     }
     
     private func addSet() {
-        var sets = trainingExercise.trainingSets
-        sets.append(TrainingSet(reps: 10, weight: 0))
-        trainingExercise.trainingSets = sets
+        trainingExercise.trainingSets.append(TrainingSet(reps: 10, weight: 0))
     }
 
-    private func setWeight(_ weight: Double, for i: Int) {
-        var sets = trainingExercise.trainingSets
-        sets[i].weight = weight
-        trainingExercise.trainingSets = sets
+    private func indexForSet(id: String) -> Int? {
+        return trainingExercise.trainingSets.firstIndex { $0.id == id }
     }
 
     private func weightOptions() -> [Double] {
