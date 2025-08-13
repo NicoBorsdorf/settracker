@@ -17,14 +17,18 @@ struct SetSheet: View {
     @State private var exercise: Exercise? = nil
 
     init(
-        trainingExercise: TrainingExercise,
+        trainingExercise: TrainingExercise?,
         onCancel: @escaping () -> Void,
         onSave: @escaping (TrainingExercise) -> Void
     ) {
         self.onCancel = onCancel
         self.onSave = onSave
-        _trainingExercise = State(initialValue: trainingExercise)
-        _exercise = State(initialValue: trainingExercise.exercise)  
+        if let t = trainingExercise {
+            _trainingExercise = State(initialValue: t)
+            _exercise = State(initialValue: t.exercise)
+        } else {
+            _trainingExercise = State(initialValue: TrainingExercise())
+        }
     }
 
     var body: some View {
@@ -32,7 +36,8 @@ struct SetSheet: View {
             Form {
                 Section {
                     Picker("Exercise", selection: $exercise) {
-                        ForEach(appExercises){e in
+                        Text("Select exercise...").tag(nil as Exercise?)
+                        ForEach(appExercises) { e in
                             Text(e.name).tag(e)
                         }
                     }
@@ -55,6 +60,11 @@ struct SetSheet: View {
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
+                                if trainingExercise.trainingSets.isEmpty {
+                                    Text("No sets. Add one.")
+                                        .foregroundColor(.gray)
+                                        .font(.caption)
+                                }
                                 Spacer()
                                 Button {
                                     addSet()
@@ -63,70 +73,46 @@ struct SetSheet: View {
                                 }
                                 .buttonStyle(.bordered)
                             }
-                            if trainingExercise.trainingSets.isEmpty {
-                                Text("No sets. Add one.")
-                                    .foregroundColor(.gray)
-                                    .font(.caption)
-                            } else {
-                                ForEach(
-                                    trainingExercise.trainingSets.indices,
-                                    id: \.self
-                                ) { index in
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("#\(String(index + 1))")
-                                            .frame(
-                                                width: 32,
-                                                alignment: .leading
-                                            )
-                                        HStack(spacing: 12) {
 
-                                            Stepper(
-                                                value: binding(for: index).reps,
-                                                in: 1...100
-                                            ) {
-                                                HStack {
-                                                    Text("Reps")
-                                                    Spacer()
-                                                    Text(
-                                                        "\(String(binding(for: index).reps.wrappedValue))"
-                                                    )
+                            ForEach(Array(trainingExercise.trainingSets.indices), id: \.self) { index in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("#\(index + 1)")
+                                        .frame(width: 32, alignment: .leading)
+
+                                    HStack(spacing: 12) {
+                                        Stepper(
+                                            value: $trainingExercise.trainingSets[index].reps,
+                                            in: 1...100
+                                        ) {
+                                            HStack {
+                                                Text("Reps")
+                                                Spacer()
+                                                Text("\(trainingExercise.trainingSets[index].reps)")
                                                     .foregroundColor(.secondary)
-                                                }
                                             }
-                                            Menu {
-                                                ForEach(
-                                                    weightOptions(),
-                                                    id: \.self
-                                                ) { w in
-                                                    Button {
-                                                        setWeight(w, for: index)
-                                                    } label: {
-                                                        Text(weightText(w))
-                                                    }
-                                                }
-                                            } label: {
-                                                HStack {
-                                                    Image(
-                                                        systemName: "scalemass"
-                                                    )
-                                                    Text(
-                                                        weightText(
-                                                            binding(for: index)
-                                                                .weight
-                                                                .wrappedValue
-                                                        )
-                                                    )
-                                                }
-                                            }
+                                        }
 
-                                            Spacer()
-
-                                            Button(role: .destructive) {
-                                                let _ = trainingExercise.trainingSets
-                                                    .remove(at: index)
-                                            } label: {
-                                                Image(systemName: "trash")
+                                        Menu {
+                                            ForEach(weightOptions(), id: \.self) { w in
+                                                Button {
+                                                    trainingExercise.trainingSets[index].weight = w
+                                                } label: {
+                                                    Text(weightText(w))
+                                                }
                                             }
+                                        } label: {
+                                            HStack {
+                                                Image(systemName: "scalemass")
+                                                Text(weightText(trainingExercise.trainingSets[index].weight))
+                                            }
+                                        }
+
+                                        Spacer()
+
+                                        Button(role: .destructive) {
+                                            trainingExercise.trainingSets.remove(at: index)
+                                        } label: {
+                                            Image(systemName: "trash")
                                         }
                                     }
                                 }
@@ -148,24 +134,11 @@ struct SetSheet: View {
             }
         }
     }
-
+    
     private func addSet() {
         var sets = trainingExercise.trainingSets
         sets.append(TrainingSet(reps: 10, weight: 0))
         trainingExercise.trainingSets = sets
-    }
-
-    private func binding(for i: Int) -> Binding<TrainingSet> {
-        Binding<TrainingSet>(
-            get: {
-                return trainingExercise.trainingSets[i]
-            },
-            set: { newVal in
-                var sets = trainingExercise.trainingSets
-                sets[i] = newVal
-                trainingExercise.trainingSets = sets
-            }
-        )
     }
 
     private func setWeight(_ weight: Double, for i: Int) {

@@ -42,9 +42,9 @@ struct TrainingSet: Identifiable, Hashable {
 
 struct TrainingExercise: Identifiable, Hashable {
     let id: String = UUID().uuidString
-    let exercise: Exercise
-    var category: Category
-    var duration: Int
+    var exercise: Exercise?
+    var category: Category?
+    var duration: Int = 0
     var trainingSets: [TrainingSet] = []
 }
 

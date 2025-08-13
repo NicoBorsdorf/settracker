@@ -29,7 +29,7 @@ struct TrainingView: View {
         self.viewModel = viewModel
     }
 
-    @State private var type = ""
+    @State private var type: TrainingType? = nil
     @State private var showTrainings = false
     @State private var prevTraining: String? = nil
 
@@ -53,7 +53,11 @@ struct TrainingView: View {
         .navigationBarHidden(true)
         .sheet(isPresented: $showSetSheet) {
             SetSheet(
-                trainingExercise: TrainingExercise(exercise: viewModel.exercises[0], category: Category.pull, duration: 0),
+                trainingExercise: TrainingExercise(
+                    exercise: viewModel.exercises[0],
+                    category: Category.pull,
+                    duration: 0
+                ),
                 onCancel: { showSetSheet = false },
                 onSave: { set in
                     training.exercises.append(set)
@@ -94,8 +98,8 @@ struct TrainingView: View {
                     .foregroundColor(.white)
                     .cornerRadius(8)
             }
-            .disabled(type.isEmpty || training.exercises.isEmpty)
-            .opacity(type.isEmpty || training.exercises.isEmpty ? 0.6 : 1)
+            .disabled(type == nil || training.exercises.isEmpty)
+            .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
         }
         .padding()
         .background(Color(.systemBackground).shadow(radius: 0.5))
@@ -108,11 +112,10 @@ struct TrainingView: View {
                 Text("Training Type").font(.headline)
                 Spacer()
                 Picker("Category", selection: $type) {
-                    Text("Select type").tag("")
-                    Text("Push").tag("Push")
-                    Text("Pull").tag("Pull")
-                    Text("Legs").tag("Legs")
-                    Text("Cardio").tag("Cardio")
+                    Text("Select type").tag(nil as TrainingType?)
+                    ForEach(TrainingType.allCases, id: \.rawValue) { t in
+                        Text(t.rawValue).tag(t)
+                    }
                 }
                 .pickerStyle(.menu)
             }
@@ -214,13 +217,23 @@ struct TrainingView: View {
                         .font(.headline)
                     Spacer()
                     Button {
-                        // Open browser of exercises
-                        // We'll show a categorized inline list below as well
+                        showSetSheet = true
                     } label: {
                         Label("Add exercise", systemImage: "plus")
                     }
-
                     .disabled(viewModel.exercises.isEmpty)
+                    .sheet(isPresented: $showSetSheet) {
+                        SetSheet(
+                            trainingExercise: nil,
+                            onCancel: {
+                                showSetSheet = false
+                            },
+                            onSave: { t in
+                                training.exercises.append(t)
+                            }
+                        )
+
+                    }
                 }
 
                 if training.exercises.isEmpty {
@@ -255,7 +268,7 @@ struct TrainingView: View {
 
     // MARK: - Helper Views & Methods
     func saveTraining() {
-        guard !type.isEmpty, !training.exercises.isEmpty else {
+        guard type == nil, !training.exercises.isEmpty else {
             return
         }
 
@@ -264,19 +277,14 @@ struct TrainingView: View {
     }
 
     func copyFromTraining(_ trainingId: String) {
+        let toCopy = viewModel.trainings.first(where: { $0.id == trainingId })!
         // Deep copy exercises with new IDs and duplicated sets
-        let copied: [TrainingExercise] = training.exercises.map { src in
-            let copiedSets = src.trainingSets.map { set in
-                TrainingSet(
-                    reps: set.reps,
-                    weight: set.weight
-                )
-            }
+        let copied: [TrainingExercise] = toCopy.exercises.map { src in
             return TrainingExercise(
                 exercise: src.exercise,
                 category: src.category,
                 duration: src.duration,
-                trainingSets: copiedSets
+                trainingSets: src.trainingSets
             )
         }
 
@@ -296,7 +304,9 @@ private struct ExerciseRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(trainingExercise.exercise.name).font(.subheadline)
+                    Text(trainingExercise.exercise?.name ?? "No exercise").font(
+                        .subheadline
+                    )
                     Text(summaryText(trainingExercise))
                         .font(.caption)
                         .foregroundColor(.gray)
@@ -329,11 +339,11 @@ private struct ExerciseRow: View {
         }
     }
 
-    private func summaryText(_ ex: TrainingExercise) -> String {
-        if ex.exercise.category == Category.cardio {
-            return "\(ex.duration) min"
+    private func summaryText(_ tEx: TrainingExercise) -> String {
+        if let ex = tEx.exercise, ex.category == Category.cardio {
+            return "\(tEx.duration) min"
         }
-        let sets = ex.trainingSets
+        let sets = tEx.trainingSets
         let setCount = sets.count
         let repSamples = sets.prefix(3).map {
             "\($0.reps)x\(($0.weight).cleanWeight)"
