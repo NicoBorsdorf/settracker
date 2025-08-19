@@ -51,11 +51,10 @@ struct TrainingView: View {
         }
         .background(Color(.systemGroupedBackground))
         .navigationBarHidden(true)
-        // Sheet provided within exerciseSection
     }
 
-    private var header: some View {
         // MARK: Header
+    private var header: some View {
         HStack {
             Button {
                 dismiss()
@@ -92,8 +91,8 @@ struct TrainingView: View {
         .background(Color(.systemBackground).shadow(radius: 0.5))
     }
 
+    // MARK: Training Details
     private var trainingDetails: some View {
-        // MARK: Training Details
         SectionCard {
             HStack(alignment: .center) {
                 Text("Training Type").font(.headline)
@@ -108,9 +107,9 @@ struct TrainingView: View {
             }
         }
     }
-
+    
+    // MARK: Copy from Previous
     private var copyFromPrevious: some View {
-        // MARK: Copy from Previous
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
@@ -196,6 +195,7 @@ struct TrainingView: View {
         }
     }
 
+    // MARK: - Exercise section
     private var exerciseSection: some View {
         SectionCard {
             VStack(alignment: .leading, spacing: 10) {

@@ -19,7 +19,7 @@ struct ContentView: View {
                     .tabItem {
                         Label("Account", systemImage: "person.circle")
                     }.tag(2)
-        }
+        }.background(.white)
     }
 }
 

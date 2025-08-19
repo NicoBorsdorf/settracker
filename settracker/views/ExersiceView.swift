@@ -19,7 +19,7 @@ struct ExerciseLibraryView: View {
                         Text(category.rawValue).bold()
                         ForEach(viewModel.exercises.filter { $0.category.rawValue == category.rawValue }) { exercise in
                             VStack(alignment: .leading) {
-                                Text(exercise.id).bold()
+                                Text(exercise.name).bold()
                             }
                         }
                     }
