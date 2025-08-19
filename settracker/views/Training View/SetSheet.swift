@@ -76,26 +76,30 @@ struct SetSheet: View {
     private var exercisePickerCard: some View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Exercise").font(.headline)
-                Picker("Exercise", selection: $selectedExercise) {
-                    Text("Select exercise...").tag(nil as Exercise?)
-                    ForEach(appExercises) { e in
-                        Text(e.name).tag(e as Exercise?)
-                    }
+                VStack{
+                    Text("Exercise").font(.headline).multilineTextAlignment(.center)
                 }
-                .pickerStyle(.menu)
-                .onChange(of: selectedExercise) { newValue in
-                    trainingExercise.exercise = newValue
-                    trainingExercise.category = newValue?.category
-                    if newValue?.category == .cardio {
-                        trainingExercise.trainingSets.removeAll()
+                VStack(spacing: 8) {
+                    Picker("Exercise", selection: $selectedExercise) {
+                        Text("Select exercise...").tag(nil as Exercise?)
+                        ForEach(appExercises) { e in
+                            Text(e.name).tag(e as Exercise?)
+                        }
                     }
-                }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedExercise, initial: false) { newValue, _ in
+                        trainingExercise.exercise = newValue
+                        trainingExercise.category = newValue?.category
+                        if newValue?.category == .cardio {
+                            trainingExercise.trainingSets.removeAll()
+                        }
+                    }
 
-                if let ex = selectedExercise {
-                    Text("Category: \(ex.category.rawValue.capitalized)")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    if let ex = selectedExercise {
+                        Text("Category: \(ex.category.rawValue.capitalized)")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
                 }
             }
         }
@@ -110,7 +114,7 @@ struct SetSheet: View {
                     Button(stopwatchRunning ? "Stop" : "Start") {
                         stopwatchRunning.toggle()
                     }
-                    .buttonStyle(stopwatchRunning ? .borderedProminent : .bordered)
+                    .buttonStyle(stopwatchRunning ? .bordered : .bordered)
                     Button("Reset") {
                         stopwatchRunning = false
                         stopwatchSeconds = 0
