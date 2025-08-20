@@ -16,6 +16,7 @@ struct TrainingView: View {
     init(training: Training? = nil, viewModel: AppViewModel) {
         if let t = training {
             _training = State(initialValue: t)
+            _type = State(initialValue: t.type)
         } else {
             _training = State(
                 initialValue: .init(
@@ -65,9 +66,9 @@ struct TrainingView: View {
             }
 
             VStack(alignment: .leading) {
-                Text("New Training")
+                Text("newTraining")
                     .font(.headline)
-                Text("Create your workout")
+                Text("createWorkout")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -77,7 +78,7 @@ struct TrainingView: View {
             Button {
                 saveTraining()
             } label: {
-                Label("Save", systemImage: "square.and.arrow.down")
+                Label("save", systemImage: "square.and.arrow.down")
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.green)
@@ -95,10 +96,10 @@ struct TrainingView: View {
     private var trainingDetails: some View {
         SectionCard {
             HStack(alignment: .center) {
-                Text("Training Type").font(.headline)
+                Text("trainingType").font(.headline)
                 Spacer()
-                Picker("Category", selection: $type) {
-                    Text("Select type").tag(nil as TrainingType?)
+                Picker("category", selection: $type) {
+                    Text("selectType").tag(nil as TrainingType?)
                     ForEach(TrainingType.allCases, id: \.rawValue) { t in
                         Text(t.rawValue).tag(t)
                     }
@@ -114,9 +115,9 @@ struct TrainingView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Copy from previous")
+                        Text("copyFromPrev")
                             .font(.headline)
-                        Text("Reuse a recent training as a template")
+                        Text("reusePrevTraining")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
@@ -136,21 +137,21 @@ struct TrainingView: View {
                         .background(Color(.systemGray6))
                         .clipShape(Circle())
                     }
-                    .accessibilityLabel("Toggle previous trainings")
+                    .accessibilityLabel("togglePrevTrainings")
                 }
 
                 if showTrainings {
                     VStack(alignment: .leading, spacing: 8) {
                         if viewModel.trainings.isEmpty {
-                            Text("No previous trainings available")
+                            Text("noPrevTrainings")
                                 .foregroundColor(.gray)
                                 .font(.caption)
                         } else {
                             Picker(
-                                "Previous trainings",
+                                "prevTrainings",
                                 selection: $prevTraining
                             ) {
-                                Text("Select previous training").tag(
+                                Text("selectPrevTraining").tag(
                                     String?.none
                                 )
                                 ForEach(
@@ -182,7 +183,7 @@ struct TrainingView: View {
                                     prevTraining = nil
                                 }
                             } label: {
-                                Label("Copy", systemImage: "doc.on.doc")
+                                Label("copy", systemImage: "doc.on.doc")
                             }
                             .disabled(prevTraining == nil)
                             .buttonStyle(.borderedProminent)
@@ -200,13 +201,13 @@ struct TrainingView: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("Exercises (\(training.exercises.count))")
+                    Text("exercises \(training.exercises.count)")
                         .font(.headline)
                     Spacer()
                     Button {
                         showSetSheet = true
                     } label: {
-                        Label("Add exercise", systemImage: "plus")
+                        Label("addExercise", systemImage: "plus")
                     }
                     .disabled(viewModel.exercises.isEmpty)
                     .sheet(isPresented: $showSetSheet) {
@@ -225,7 +226,7 @@ struct TrainingView: View {
                 }
 
                 if training.exercises.isEmpty {
-                    Text("No exercises added yet")
+                    Text("noExercises")
                         .foregroundColor(.gray)
                         .padding(.bottom, 8)
                 } else {
@@ -297,7 +298,7 @@ private struct ExerciseRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(trainingExercise.exercise?.name ?? "No exercise").font(
+                    Text(trainingExercise.exercise?.name ?? "noEcerise").font(
                         .subheadline
                     )
                     Text(summaryText(trainingExercise))
@@ -373,6 +374,8 @@ struct SectionCard<Content: View>: View {
     }
 }
 
+/*
 #Preview {
     TrainingView(viewModel: AppViewModel())
 }
+*/

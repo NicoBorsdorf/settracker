@@ -1,0 +1,85 @@
+//  ENGLISH
+//  Localizable.strings
+//  settracker
+//
+//  Created by Nico Borsdorf on 20.08.25.
+//
+
+
+// MARK: AccountView
+"appearance" = "Appearance";
+"theme" = "Theme";
+"language" = "Language";
+"appLanguage" = "App Language";
+"english" = "English";
+"german" = "German";
+"lastSynced" = "Last synced";
+"notSynced" = "Not synced yet";
+"syncNow" = "Sync Now";
+"about" = "About";
+"privacyPolicy" = "Privacy Policy";
+"termsOfService" = "Terms of Service";
+"account" = "Account";
+
+
+// MARK: ContentView
+"home" = "Home";
+"exercises" = "Exercises";
+"account" = "Account";
+
+
+// MARK: ExerciseView
+"exerciseLibrary" = "Exercise Library";
+"add" = "Add";
+"exerciseName" = "Exercise name";
+"newExercise" = "New Exercise";
+"editExercise" = "Edit Exercise";
+
+
+// MARK: HomeView
+"trainingLog" = "Training Log";
+"newTraining" = "New training";
+"strength" = "Strength";
+"cardio" = "Cardio";
+"mobility" = "Mobility";
+
+
+// MARK: SetSheet
+"addEditSet" = "Add and edit your sets.";
+"exercise" = "Exercise";
+"selectExercise" = "Select exercise...";
+"category" = "Category: %@";
+"stopwatch" = "Stopwatch";
+"reset" = "Reset";
+"targetDuration" = "Target Duration";
+"savingTime" = "When saving, time is added as minutes to the exercise.";
+"addSet" = "Add set";
+"cardioNoSet" = "Cardio exercises do not use sets.";
+"noSets" = "No sets yet. Tap 'Add set'.";
+"reps" = "Reps";
+"deleteSet" = "Delete set";
+
+
+// MARK: TrainingView
+"createWorkout" = "Create your workout.";
+"trainingType" = "Training Type";
+"selectType" = "Select type";
+"copyFromPrev" = "Copy from previous";
+"reusePrevTraining" = "Reuse a recent training as a template";
+"togglePrevTrainings" = "Toggle previous trainings";
+"noPrevTrainings" = "No previous trainings available";
+"prevTrainings" = "Previous trainings";
+"selectPrevTraining" = "Select previous training";
+"copy" = "Copy";
+"exercises" = "Exercises (%@)";
+"addExercise" = "Add exercise";
+"noExercises" = "No exercises added yet";
+"noExercise" = "No exercise";
+
+
+// MARK: Common
+// here is everything that is used in more than one view / component
+"cancel" = "Cancel";
+"save" = "Save";
+"category" = "Category";
+"newTraining" = "New training";

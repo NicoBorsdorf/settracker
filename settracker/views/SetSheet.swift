@@ -76,7 +76,7 @@ struct SetSheet: View {
             VStack(alignment: .leading) {
                 Text("Sets")
                     .font(.headline)
-                Text("Add and edit your sets.")
+                Text("addEditSet")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -86,7 +86,7 @@ struct SetSheet: View {
             Button {
                 saveAndClose()
             } label: {
-                Label("Save", systemImage: "square.and.arrow.down")
+                Label("save", systemImage: "square.and.arrow.down")
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(Color.green)
@@ -118,14 +118,14 @@ struct SetSheet: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Spacer()
-                    Text("Exercise").font(.headline)
+                    Text("exercise").font(.headline)
                     Spacer()
                 }
                 HStack {
                     Spacer()
                     VStack(spacing: 8) {
-                        Picker("Exercise", selection: $selectedExercise) {
-                            Text("Select exercise...").tag(nil as Exercise?)
+                        Picker("exercise", selection: $selectedExercise) {
+                            Text("selectExercise").tag(nil as Exercise?)
                             ForEach(appExercises) { e in
                                 Text(e.name).tag(e as Exercise?)
                             }
@@ -143,7 +143,7 @@ struct SetSheet: View {
 
                         if let ex = selectedExercise {
                             Text(
-                                "Category: \(ex.category.rawValue.capitalized)"
+                                "category \(ex.category.rawValue.capitalized)"
                             )
                             .font(.caption)
                             .foregroundColor(.gray)
@@ -160,13 +160,13 @@ struct SetSheet: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Stopwatch").font(.headline)
+                    Text("stopwatch").font(.headline)
                     Spacer()
                     Button(stopwatchRunning ? "Stop" : "Start") {
                         stopwatchRunning.toggle()
                     }
                     .buttonStyle(stopwatchRunning ? .bordered : .bordered)
-                    Button("Reset") {
+                    Button("reset") {
                         stopwatchRunning = false
                         stopwatchSeconds = 0
                     }
@@ -190,16 +190,14 @@ struct SetSheet: View {
                         step: 5
                     ) {
                         HStack {
-                            Text("Target Duration")
+                            Text("targetDuration")
                             Spacer()
                             Text("\(trainingExercise.duration) min")
                                 .foregroundColor(.secondary)
                         }
                     }
                 } else {
-                    Text(
-                        "When saving, time is added as minutes to the exercise."
-                    )
+                    Text("savingTime")
                     .font(.caption)
                     .foregroundColor(.gray)
                 }
@@ -216,16 +214,16 @@ struct SetSheet: View {
                     Button {
                         addSet()
                     } label: {
-                        Label("Add set", systemImage: "plus")
+                        Label("addSet", systemImage: "plus")
                     }
                 }
 
                 if trainingExercise.category == .cardio {
-                    Text("Cardio exercises do not use sets.")
+                    Text("cardioNoSet")
                         .font(.caption)
                         .foregroundColor(.gray)
                 } else if trainingExercise.trainingSets.isEmpty {
-                    Text("No sets yet. Tap ‘Add set’.")
+                    Text("noSets")
                         .font(.caption)
                         .foregroundColor(.gray)
                 } else {
@@ -250,7 +248,7 @@ struct SetSheet: View {
                     value: set.reps,
                     in: 1...100
                 ) {
-                    Text("Reps").font(.caption2)
+                    Text("reps").font(.caption2)
                     Text("\(set.wrappedValue.reps)")
                         .foregroundColor(.secondary)
                         .font(.subheadline).multilineTextAlignment(.center)
@@ -286,7 +284,7 @@ struct SetSheet: View {
                 } label: {
                     Image(systemName: "trash")
                 }
-                .accessibilityLabel("Delete set")
+                .accessibilityLabel("deleteSet")
             }
         }
         .padding(10)
@@ -334,6 +332,7 @@ struct SetSheet: View {
     }
 }
 
+/*
 #Preview {
     NavigationStack {
         SetSheet(
@@ -348,3 +347,4 @@ struct SetSheet: View {
         )
     }
 }
+*/

@@ -1,0 +1,85 @@
+//  DEUTSCH
+//  Localizable.strings
+//  settracker
+//
+//  Created by Nico Borsdorf on 20.08.25.
+//
+
+
+// MARK: AccountView
+"appearance" = "Erscheinungsbild";
+"theme" = "Thema";
+"language" = "Sprache";
+"appLanguage" = "App-Sprache";
+"english" = "Englisch";
+"german" = "Deutsch";
+"lastSynced" = "Zuletzt synchronisiert";
+"notSynced" = "Noch nicht synchronisiert";
+"syncNow" = "Jetzt synchronisieren";
+"about" = "Über";
+"privacyPolicy" = "Datenschutzrichtlinie";
+"termsOfService" = "Nutzungsbedingungen";
+"account" = "Konto";
+
+
+// MARK: ContentView
+"home" = "Startseite";
+"exercises" = "Übungen";
+"account" = "Konto";
+
+
+// MARK: ExerciseView
+"exerciseLibrary" = "Übungsbibliothek";
+"add" = "Hinzufügen";
+"exerciseName" = "Übungsname";
+"newExercise" = "Neue Übung";
+"editExercise" = "Übung bearbeiten";
+
+
+// MARK: HomeView
+"trainingLog" = "Trainingsprotokoll";
+"newTraining" = "Neues Training";
+"strength" = "Kraft";
+"cardio" = "Cardio";
+"mobility" = "Mobilität";
+
+
+// MARK: SetSheet
+"addEditSet" = "Füge Sätze hinzu und bearbeite sie.";
+"exercise" = "Übung";
+"selectExercise" = "Übung auswählen...";
+"category" = "Kategorie: %@";
+"stopwatch" = "Stoppuhr";
+"reset" = "Zurücksetzen";
+"targetDuration" = "Zieldauer";
+"savingTime" = "Beim Speichern wird die Zeit als Minuten zur Übung hinzugefügt.";
+"addSet" = "Satz hinzufügen";
+"cardioNoSet" = "Cardio-Übungen verwenden keine Sätze.";
+"noSets" = "Noch keine Sätze. Tippe auf 'Satz hinzufügen'.";
+"reps" = "Wiederholungen";
+"deleteSet" = "Satz löschen";
+
+
+// MARK: TrainingView
+"createWorkout" = "Erstelle dein Workout.";
+"trainingType" = "Trainingstyp";
+"selectType" = "Typ auswählen";
+"copyFromPrev" = "Von vorherigem kopieren";
+"reusePrevTraining" = "Verwende ein vorheriges Training als Vorlage";
+"togglePrevTrainings" = "Vorherige Trainings umschalten";
+"noPrevTrainings" = "Keine vorherigen Trainings verfügbar";
+"prevTrainings" = "Vorherige Trainings";
+"selectPrevTraining" = "Vorheriges Training auswählen";
+"copy" = "Kopieren";
+"exercises" = "Übungen (%@)";
+"addExercise" = "Übung hinzufügen";
+"noExercises" = "Noch keine Übungen hinzugefügt";
+"noExercise" = "Keine Übung";
+
+
+// MARK: Common
+// here is everything that is used in more than one view / component
+"cancel" = "Abbrechen";
+"save" = "Speichern";
+"category" = "Kategorie";
+"newTraining" = "Neues Training";

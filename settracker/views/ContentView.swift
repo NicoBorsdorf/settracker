@@ -7,22 +7,22 @@ struct ContentView: View {
         TabView(selection: $viewModel.selectedTab) {
                 HomeView(viewModel: viewModel)
                     .tabItem {
-                        Label("Home", systemImage: "house")
+                        Label("home", systemImage: "house")
                     }.tag(0)
                 
                 ExerciseLibraryView(viewModel: viewModel)
                     .tabItem {
-                        Label("Exercises", systemImage: "dumbbell.fill")
+                        Label("exercises", systemImage: "dumbbell.fill")
                     }.tag(1)
                 
                 AccountView()
                     .tabItem {
-                        Label("Account", systemImage: "person.circle")
+                        Label("account", systemImage: "person.circle")
                     }.tag(2)
         }.background(.white)
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    ContentView()
+//}

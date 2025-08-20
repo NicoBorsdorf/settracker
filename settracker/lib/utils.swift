@@ -9,7 +9,7 @@ import SwiftUI
 
 func groupTrainingsByWeek(_ trainings: [Training]) -> [TrainingWeekGroup] {
     var grouped: [String: [Training]] = [:]
-    
+
     for training in trainings {
         let weekStart = getWeekStart(training.date)
         let key = weekStart.description
@@ -17,23 +17,30 @@ func groupTrainingsByWeek(_ trainings: [Training]) -> [TrainingWeekGroup] {
     }
 
     return grouped.map { key, value in
-        TrainingWeekGroup(weekStart: ISO8601DateFormatter().date(from: key) ?? Date(), trainings: value)
+        TrainingWeekGroup(
+            weekStart: ISO8601DateFormatter().date(from: key) ?? Date(),
+            trainings: value
+        )
     }.sorted { $0.weekStart > $1.weekStart }
 }
 
 func getWeekStart(_ date: Date) -> Date {
     let calendar = Calendar.current
-    let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+    let components = calendar.dateComponents(
+        [.yearForWeekOfYear, .weekOfYear],
+        from: date
+    )
     return calendar.date(from: components) ?? date
 }
 
 func formatWeekRange(_ start: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMM d"
-    let end = Calendar.current.date(byAdding: .day, value: 6, to: start)!
-    return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
+    let calendar = Calendar(identifier: .gregorian)
+    let components = calendar.dateComponents(
+        [.yearForWeekOfYear, .weekOfYear],
+        from: start
+    )
+    return "Week \(components.weekOfYear ?? 0) / \(components.yearForWeekOfYear ?? 0)"
 }
-
 
 func buildDefaultTrainingExercise(from exercise: Exercise) -> TrainingExercise {
     if exercise.category == Category.cardio {
@@ -46,8 +53,8 @@ func buildDefaultTrainingExercise(from exercise: Exercise) -> TrainingExercise {
     } else {
         let defaultSets = [
             TrainingSet(reps: 10, weight: 0),
-            TrainingSet( reps: 10, weight: 0),
-            TrainingSet( reps: 10, weight: 0),
+            TrainingSet(reps: 10, weight: 0),
+            TrainingSet(reps: 10, weight: 0),
         ]
         return TrainingExercise(
             exercise: exercise,
