@@ -1,28 +1,37 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(AppRouter.self) var router
+    let tabs: [AppTab] = AppTab.allCases
     @StateObject var viewModel = AppViewModel()
 
     var body: some View {
-        TabView(selection: $viewModel.selectedTab) {
-                HomeView(viewModel: viewModel)
-                    .tabItem {
-                        Label("home", systemImage: "house")
-                    }.tag(0)
+        @Bindable var router = router
+        if #available(iOS 26.0, *){
+            TabView(selection: $router.selectedTab) {
+                ForEach(AppTab.allCases, id: \.self){ tab in
+                    Tab(value: tab, role: .search){
+                        AppTabRootView(tab: tab)
+                    } label: {
+                        Label(tab.title, systemImage: tab.icon)
+                    }
+                }
+                    
+            }
+            .tint(.black)
+            .tabBarMinimizeBehavior(.onScrollDown)
+            .onChange(of: router.selectedTab){ oldTab, newTab in
+                    withAnimation(.easeInOut) {
+                        viewModel.selectedTab = newTab.rawValue
+                    }
                 
-                ExerciseLibraryView(viewModel: viewModel)
-                    .tabItem {
-                        Label("exercises", systemImage: "dumbbell.fill")
-                    }.tag(1)
-                
-                AccountView()
-                    .tabItem {
-                        Label("account", systemImage: "person.circle")
-                    }.tag(2)
-        }.background(.white)
+            }
+        } else {
+            EmptyView()
+        }
     }
 }
 
-//#Preview {
-//    ContentView()
-//}
+#Preview {
+    ContentView()
+}

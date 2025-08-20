@@ -54,9 +54,11 @@ struct AccountView: View {
                 // MARK: iCloud Sync
                 Section(header: Text("iCloud")) {
                     if let lastSync = lastSync {
-                        Text("lastSynced: \(lastSync.formatted(date: .abbreviated, time: .shortened))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                        Text(
+                            "lastSynced: \(lastSync.formatted(date: .abbreviated, time: .shortened))"
+                        )
+                        .font(.caption)
+                        .foregroundColor(.gray)
                     } else {
                         Text("notSynced")
                             .font(.caption)
@@ -109,12 +111,15 @@ struct AccountView: View {
     }
 
     private func appVersionString() -> String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        let version =
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+            ?? "?"
+        let build =
+            Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         return "\(version) (\(build))"
     }
 }
 
-//#Preview {
-//    AccountView()
-//}
+#Preview {
+    AccountView()
+}

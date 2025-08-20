@@ -101,6 +101,6 @@ struct HomeView: View {
     }
 }
 
-//#Preview {
-//    HomeView(viewModel: AppViewModel())
-//}
+#Preview {
+    HomeView(viewModel: AppViewModel())
+}
