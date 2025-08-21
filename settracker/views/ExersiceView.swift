@@ -5,44 +5,58 @@
 //  Created by Nico Borsdorf on 28.07.25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ExerciseLibraryView: View {
     @ObservedObject var viewModel: AppViewModel
 
-    @State private var showExerciseSheet = false
-    @State private var editingExercise: Exercise? = nil
+    @State private var editingCategory: Category? = nil
+
+    init(
+        viewModel: AppViewModel,
+    ) {
+        self.viewModel = viewModel
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach(Category.allCases, id: \.self) { category in
-                        let exercises = viewModel.exercises.filter { $0.category == category }
-                        if !exercises.isEmpty {
-                            SectionCard {
-                                VStack(alignment: .leading, spacing: 10) {
+                        let exercises = viewModel.exercises.filter {
+                            $0.category == category
+                        }
+                        SectionCard {
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text(category.rawValue.uppercased())
+                                        .font(.headline)
+                                    Spacer()
+                                    if #available(iOS 26.0, *) {
+                                        Button(
+                                            "",
+                                            systemImage: "pencil",
+                                            role: .confirm
+                                        ) {
+                                            editingCategory = category
+                                        }
+                                    } else {
+                                        Button("", systemImage: "plus") {
+                                            editingCategory = category
+                                        }.backgroundStyle(.blue)
+                                    }
+                                }
+
+                                ForEach(exercises) { exercise in
                                     HStack {
-                                        Text(category.rawValue.uppercased())
-                                            .font(.headline)
+                                        Text(exercise.name)
+                                            .font(.subheadline)
                                         Spacer()
                                     }
-
-                                    ForEach(exercises) { exercise in
-                                        ExerciseRow(
-                                            exercise: exercise,
-                                            onEdit: { ex in
-                                                editingExercise = ex
-                                                showExerciseSheet = true
-                                            },
-                                            onDelete: {
-                                                viewModel.exercises.removeAll { $0.id == exercise.id }
-                                            }
-                                        )
-                                    }
+                                    .padding(10)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(8)
                                 }
                             }
                         }
@@ -50,79 +64,46 @@ struct ExerciseLibraryView: View {
                 }
                 .padding()
             }
-        }
-        .background(Color(.systemGroupedBackground))
-        .navigationBarHidden(true)
-        .sheet(isPresented: $showExerciseSheet) {
-            ExerciseSheet(
-                exercise: editingExercise,
-                onCancel: {
-                    editingExercise = nil
-                    showExerciseSheet = false
-                },
-                onSave: { ex in
-                    if let idx = viewModel.exercises.firstIndex(where: { $0.id == ex.id }) {
-                        // update existing
-                        viewModel.exercises[idx] = ex
-                    } else {
-                        // add new
-                        viewModel.exercises.append(ex)
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("exerciseLibrary")
+            .sheet(item: $editingCategory) { category in
+                ExerciseSheet(
+                    category: category,
+                    exercises: $viewModel.exercises,
+                    onCancel: {
+                        editingCategory = nil
+                    },
+                    onSave: { ex in
+                        if let idx = viewModel.exercises.firstIndex(where: {
+                            $0.id == ex.id
+                        }) {
+                            // update existing
+                            viewModel.exercises[idx] = ex
+                        } else {
+                            // add new
+                            viewModel.exercises.append(ex)
+                        }
                     }
-                    editingExercise = nil
-                    showExerciseSheet = false
-                }
-            )
-        }
-    }
-
-    // MARK: Header
-    private var header: some View {
-        HStack {
-            Text("exerciseLibrary")
-                .font(.headline)
-
-            Spacer()
-
-            Button {
-                editingExercise = nil
-                showExerciseSheet = true
-            } label: {
-                Label("add", systemImage: "plus")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                )
             }
         }
-        .padding()
-        .background(Color(.systemBackground).shadow(radius: 0.5))
     }
 }
 
 // MARK: - Exercise Row
 private struct ExerciseRow: View {
     var exercise: Exercise
-    var onEdit: (Exercise) -> Void
-    var onDelete: () -> Void
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading) {
-                Text(exercise.name)
-                    .font(.subheadline)
-            }
+            Text(exercise.name)
+                .font(.subheadline)
             Spacer()
-            Button {
-                onEdit(exercise)
-            } label: {
-                Image(systemName: "pencil")
-            }
-            Button(role: .destructive) {
-                onDelete()
-            } label: {
-                Image(systemName: "trash")
-            }
+            Label {
+                Text("delete").padding(0)
+            } icon: {
+                Image(systemName: "arrow.left").padding(0)
+            }.font(.caption2).foregroundStyle(Color.gray)
         }
         .padding(10)
         .background(Color(.systemGray6))
@@ -130,54 +111,82 @@ private struct ExerciseRow: View {
     }
 }
 
-// MARK: - Add/Edit Exercise Sheet
+// MARK: - Category Exercise Sheet
 struct ExerciseSheet: View {
-    var exercise: Exercise?
+    var category: Category
+    @Binding var exercises: [Exercise]  // pass in the full exercise list
     var onCancel: () -> Void
-    var onSave: (Exercise) -> Void
+    var onSave: (Exercise) -> Void  // called when a new exercise is added
 
-    @State private var name: String = ""
-    @State private var category: Category = .push
+    @State private var newExerciseName: String = ""
+
+    // Filtered exercises for this category
+    private var categoryExercises: [Exercise] {
+        exercises.filter { $0.category == category }
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Details") {
-                    TextField("exerciseName", text: $name)
-                    Picker("category", selection: $category) {
-                        ForEach(Category.allCases, id: \.self) { cat in
-                            Text(cat.rawValue).tag(cat)
-                        }
+            VStack {
+                List {
+                    ForEach(categoryExercises, id: \.self) { exercise in
+                        ExerciseRow(exercise: exercise)
                     }
+                    .onDelete(perform: deleteExercise)
+
+                    // Add new exercise section
+                    VStack {
+                        TextField("exerciseName", text: $newExerciseName)
+                            .textFieldStyle(.roundedBorder)
+                            .padding(.horizontal)
+
+                        Button {
+                            addExercise()
+                        } label: {
+                            Label("add", systemImage: "plus")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(
+                                    newExerciseName.isEmpty
+                                        ? Color.gray.opacity(0.3) : Color.blue
+                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .disabled(newExerciseName.isEmpty)
+                        .padding(.horizontal)
+                    }
+                    .padding(.vertical, 12)
                 }
+
             }
-            .navigationTitle(exercise == nil ? "newExercise" : "editExercise")
+            .navigationTitle(category.id.uppercased())
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("cancel") { onCancel() }
-                }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("save") {
-                        let newExercise = Exercise(
-                            name: name,
-                            category: category
-                        )
-                        onSave(newExercise)
-                    }
-                    .disabled(name.isEmpty)
-                }
-            }
-            .onAppear {
-                if let ex = exercise {
-                    name = ex.name
-                    category = ex.category
+                    Button("close") { onCancel() }
                 }
             }
         }
     }
+
+    // MARK: - Actions
+    private func addExercise() {
+        let newExercise = Exercise(
+            name: newExerciseName,
+            category: category
+        )
+        exercises.append(newExercise)
+        onSave(newExercise)
+        newExerciseName = ""
+    }
+
+    private func deleteExercise(at offsets: IndexSet) {
+        let idsToDelete = offsets.map { categoryExercises[$0].id }
+        exercises.removeAll { idsToDelete.contains($0.id) }
+    }
 }
 
-//#Preview{
-//ExerciseLibraryView(viewModel: AppViewModel())
-//}
+#Preview {
+    ExerciseLibraryView(viewModel: AppViewModel())
+}

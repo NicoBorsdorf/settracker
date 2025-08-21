@@ -11,39 +11,18 @@ struct HomeView: View {
     @ObservedObject var viewModel: AppViewModel
 
     var body: some View {
-        NavigationStack {
-            VStack {
-                header
-                listView
+            NavigationStack {
+                VStack {
+                   listView
+                }
+                .navigationTitle("trainingLog")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar{
+                    NavigationLink(destination: TrainingView(viewModel: viewModel), label: {
+                        Label("", systemImage: "plus")
+                    })
+                }
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationBarHidden(true)
-        }
-    }
-
-    // MARK: header
-    private var header: some View {
-        HStack {
-            Text("trainingLog")
-                .font(.title2)
-                .bold()
-
-            Spacer()
-
-            NavigationLink {
-                TrainingView(viewModel: viewModel) // new training
-            } label: {
-                Label("newTraining", systemImage: "plus")
-                    .font(.callout.bold())
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground).shadow(radius: 0.5))
     }
 
     // MARK: list
@@ -73,18 +52,22 @@ struct HomeView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .background(Color.gray.opacity(0.05))
     }
 
     // MARK: tag
     private func typeTag(for type: String) -> some View {
         let (color, text) = tagStyle(for: type)
-        return Text(text)
+        let textComponent = Text(text)
             .font(.caption)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(Capsule().fill(color.opacity(0.3)))
-            .foregroundColor(color)
+        
+        if #available(iOS 26.0, *){
+            return textComponent.glassEffect(.clear, in: .rect(cornerRadius: 8))
+        } else {
+            return textComponent
+        }
     }
 
     private func tagStyle(for type: String) -> (Color, String) {

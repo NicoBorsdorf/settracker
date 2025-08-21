@@ -38,9 +38,7 @@ struct TrainingView: View {
     @State private var showSetSheet = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-
+      NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     trainingDetails
@@ -49,49 +47,39 @@ struct TrainingView: View {
                 }
                 .padding()
             }
-        }
-        .background(Color(.systemGroupedBackground))
-        .navigationBarHidden(true)
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Training - \(training.date.formatted(date: .numeric, time: .omitted))")
+            .toolbar{
+                if #available(iOS 26.0, *){
+                    ToolbarItem(placement: .confirmationAction){
+                        Button("",systemImage: "square.and.arrow.down", role: .confirm){
+                            saveTraining()
+                        }
+                        .disabled(type == nil || training.exercises.isEmpty)
+                        .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
+                    }
+                } else {
+                    ToolbarItem(placement: .confirmationAction){
+                        Button{
+                            saveTraining()
+                        } label: {
+                            Label("Save", systemImage: "square.and.arrow.down")
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .disabled(type == nil || training.exercises.isEmpty)
+                        .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
+                    }
+                }
+            }
+            //.navigationSubtitle("createWorkout")
+      }
     }
 
-        // MARK: Header
-    private var header: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.title3)
-                    .padding(6)
-            }
-
-            VStack(alignment: .leading) {
-                Text("newTraining")
-                    .font(.headline)
-                Text("createWorkout")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
-
-            Spacer()
-
-            Button {
-                saveTraining()
-            } label: {
-                Label("save", systemImage: "square.and.arrow.down")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
-            .disabled(type == nil || training.exercises.isEmpty)
-            .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
-        }
-        .padding()
-        .background(Color(.systemBackground).shadow(radius: 0.5))
-    }
-
+  
     // MARK: Training Details
     private var trainingDetails: some View {
         SectionCard {
@@ -201,7 +189,7 @@ struct TrainingView: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("exercises \(training.exercises.count)")
+                    Text(LocalizedStringKey("exercises \(training.exercises.count)"))
                         .font(.headline)
                     Spacer()
                     Button {
@@ -258,6 +246,11 @@ struct TrainingView: View {
     // MARK: - Helper Views & Methods
     func saveTraining() {
         guard let selectedType = type, !training.exercises.isEmpty else {
+            return
+        }
+        if let idxExisting = viewModel.trainings.firstIndex(where: { $0.id == training.id }) {
+            viewModel.trainings[idxExisting] = training
+            dismiss()
             return
         }
         let newTraining = Training(
@@ -374,8 +367,8 @@ struct SectionCard<Content: View>: View {
     }
 }
 
-/*
+
 #Preview {
     TrainingView(viewModel: AppViewModel())
 }
-*/
+

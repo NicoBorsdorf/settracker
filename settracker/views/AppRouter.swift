@@ -7,40 +7,35 @@
 
 import SwiftUI
 
-
-@Observable
-class AppRouter {
+class AppRouter: ObservableObject {
     var selectedTab: AppTab
-    var presentedSheet: PresentedSheet?
     
-    init(inititalTab: AppTab = .home) {
-        self.selectedTab = inititalTab
+    init(initialTab: AppTab = .home) {
+        self.selectedTab = initialTab
     }
-}
-
-enum PresentedSheet: Equatable {
-    case none
-    case addExercise
 }
 
 enum AppTab: Int, CaseIterable {
     case home = 0
     case exercises = 1
     case account = 2
+    case training = 3
     
     var title: String {
         switch self {
         case .home: return "home"
         case .exercises: return "exercises"
         case .account: return "account"
+        case .training: return ""
         }
     }
     
     var icon: String {
         switch self {
         case .home: return "house.fill"
-        case .exercises: return "list.bullet"
+        case .exercises: return "dumbbell.fill"
         case .account: return "person.crop.circle"
+            case .training: return ""
         }
     }
 }
@@ -58,6 +53,8 @@ struct AppTabRootView: View {
             ExerciseLibraryView(viewModel: viewModel)
         case .account:
             AccountView()
+        case .training:
+            TrainingView(viewModel: viewModel)
         }
     }
 }

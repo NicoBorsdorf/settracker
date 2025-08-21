@@ -45,8 +45,7 @@ struct SetSheet: View {
     }
 
     var body: some View {
-        VStack {
-            header
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     exercisePickerCard
@@ -55,11 +54,9 @@ struct SetSheet: View {
                         setsEditorCard
                     }
                 }
-                .padding()
             }
+            .navigationTitle("Sets")
         }
-        .background(Color(.systemGroupedBackground))
-        .navigationBarHidden(true)
     }
 
     // MARK: Header
@@ -332,7 +329,7 @@ struct SetSheet: View {
     }
 }
 
-/*
+
 #Preview {
     NavigationStack {
         SetSheet(
@@ -347,4 +344,4 @@ struct SetSheet: View {
         )
     }
 }
-*/
+

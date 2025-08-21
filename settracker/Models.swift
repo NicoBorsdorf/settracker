@@ -28,6 +28,10 @@ enum Category: String, CaseIterable {
     case cardio
 }
 
+extension Category: Identifiable {
+    var id: String { rawValue }
+}
+
 enum TrainingType: String, CaseIterable {
     case strength
     case mobility
@@ -124,7 +128,4 @@ class AppViewModel: ObservableObject {
             ]
         ),
     ]
-
-    @Published var selectedTab: Int = 0
-    @Published var isCreatingTraining = false
 }

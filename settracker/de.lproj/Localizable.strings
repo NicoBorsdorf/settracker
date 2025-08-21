@@ -48,7 +48,7 @@
 "addEditSet" = "Füge Sätze hinzu und bearbeite sie.";
 "exercise" = "Übung";
 "selectExercise" = "Übung auswählen...";
-"category" = "Kategorie: %@";
+"category" = "Kategorie: %s";
 "stopwatch" = "Stoppuhr";
 "reset" = "Zurücksetzen";
 "targetDuration" = "Zieldauer";
@@ -56,7 +56,7 @@
 "addSet" = "Satz hinzufügen";
 "cardioNoSet" = "Cardio-Übungen verwenden keine Sätze.";
 "noSets" = "Noch keine Sätze. Tippe auf 'Satz hinzufügen'.";
-"reps" = "Wiederholungen";
+"reps" = "Wdh.";
 "deleteSet" = "Satz löschen";
 
 
@@ -71,7 +71,7 @@
 "prevTrainings" = "Vorherige Trainings";
 "selectPrevTraining" = "Vorheriges Training auswählen";
 "copy" = "Kopieren";
-"exercises" = "Übungen (%@)";
+"exercises %d" = "Übungen (%d)";
 "addExercise" = "Übung hinzufügen";
 "noExercises" = "Noch keine Übungen hinzugefügt";
 "noExercise" = "Keine Übung";
@@ -83,3 +83,7 @@
 "save" = "Speichern";
 "category" = "Kategorie";
 "newTraining" = "Neues Training";
+"exercises" = "Übungen";
+"close" = "Schließen";
+"delete" = "Löschen";
+"week" = "Woche";

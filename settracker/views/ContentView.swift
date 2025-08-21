@@ -1,33 +1,60 @@
 import SwiftUI
 
 struct ContentView: View {
-    @Environment(AppRouter.self) var router
-    let tabs: [AppTab] = AppTab.allCases
+    @StateObject var router = AppRouter()
     @StateObject var viewModel = AppViewModel()
 
+    private var baseTabs: [AppTab] { [.home, .exercises, .account]}
+
     var body: some View {
-        @Bindable var router = router
-        if #available(iOS 26.0, *){
+        if #available(iOS 26.0, *) {
             TabView(selection: $router.selectedTab) {
-                ForEach(AppTab.allCases, id: \.self){ tab in
-                    Tab(value: tab, role: .search){
+                ForEach(baseTabs, id: \.self) { tab in
+                    Tab(value: tab) {
                         AppTabRootView(tab: tab)
                     } label: {
-                        Label(tab.title, systemImage: tab.icon)
+                        Label {
+                            Text(LocalizedStringKey(tab.title))
+                        } icon: {
+                            Image(systemName: tab.icon)
+                        }
                     }
                 }
-                    
             }
-            .tint(.black)
+            .tint(.accentColor)
             .tabBarMinimizeBehavior(.onScrollDown)
-            .onChange(of: router.selectedTab){ oldTab, newTab in
-                    withAnimation(.easeInOut) {
-                        viewModel.selectedTab = newTab.rawValue
-                    }
-                
+            .onChange(of: router.selectedTab) { _, newTab in
+                router.selectedTab = newTab
             }
         } else {
-            EmptyView()
+            TabView(selection: $router.selectedTab) {
+                HomeView(viewModel: viewModel)
+                    .tabItem {
+                        Label {
+                            Text("home")
+                        } icon: {
+                            Image("house")
+                        }
+                    }.tag(0)
+
+                ExerciseLibraryView(viewModel: viewModel)
+                    .tabItem {
+                        Label {
+                            Text("exercises")
+                        } icon: {
+                            Image("dumbell.fill")
+                        }
+                    }.tag(1)
+
+                AccountView()
+                    .tabItem {
+                        Label {
+                            Text("account")
+                        } icon: {
+                            Image("person.circle")
+                        }
+                    }.tag(2)
+            }
         }
     }
 }

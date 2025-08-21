@@ -13,7 +13,7 @@
 "appLanguage" = "App Language";
 "english" = "English";
 "german" = "German";
-"lastSynced" = "Last synced";
+"lastSynced" = "Last synced: %@";
 "notSynced" = "Not synced yet";
 "syncNow" = "Sync Now";
 "about" = "About";
@@ -71,7 +71,7 @@
 "prevTrainings" = "Previous trainings";
 "selectPrevTraining" = "Select previous training";
 "copy" = "Copy";
-"exercises" = "Exercises (%@)";
+"exercises %d" = "Exercises (%@)";
 "addExercise" = "Add exercise";
 "noExercises" = "No exercises added yet";
 "noExercise" = "No exercise";
@@ -83,3 +83,7 @@
 "save" = "Save";
 "category" = "Category";
 "newTraining" = "New training";
+"exercises" = "Exercises";
+"close" = "Close";
+"delete" = "Delete";
+"week" = "Week";

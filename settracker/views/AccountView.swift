@@ -13,6 +13,13 @@ enum AppTheme: String, CaseIterable, Identifiable {
     case dark = "Dark"
 
     var id: String { rawValue }
+    var icon: String {
+        switch self {
+        case .system: return "cog.fill"
+        case .light: return "sun.fill"
+        case .dark: return "moon.fill"
+        }
+    }
 }
 
 enum AppLanguage: String, CaseIterable, Identifiable {
@@ -35,8 +42,8 @@ struct AccountView: View {
                 // MARK: Appearance
                 Section(header: Text("appearance")) {
                     Picker("theme", selection: $appTheme) {
-                        ForEach(AppTheme.allCases) { theme in
-                            Text(theme.rawValue).tag(theme)
+                        ForEach(AppTheme.allCases, id: \.self) { theme in
+                            Label(theme.id, systemImage: theme.icon).tag(theme)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -55,7 +62,7 @@ struct AccountView: View {
                 Section(header: Text("iCloud")) {
                     if let lastSync = lastSync {
                         Text(
-                            "lastSynced: \(lastSync.formatted(date: .abbreviated, time: .shortened))"
+                            "lastSynced \(lastSync.formatted(date: .abbreviated, time: .shortened))"
                         )
                         .font(.caption)
                         .foregroundColor(.gray)

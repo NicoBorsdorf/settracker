@@ -39,7 +39,7 @@ func formatWeekRange(_ start: Date) -> String {
         [.yearForWeekOfYear, .weekOfYear],
         from: start
     )
-    return "Week \(components.weekOfYear ?? 0) / \(components.yearForWeekOfYear ?? 0)"
+    return "\(String(localized: "week")) \(components.weekOfYear ?? 0) / \(components.yearForWeekOfYear ?? 0)"
 }
 
 func buildDefaultTrainingExercise(from exercise: Exercise) -> TrainingExercise {
