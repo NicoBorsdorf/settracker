@@ -8,7 +8,7 @@
 import SwiftUI
 
 class AppRouter: ObservableObject {
-    var selectedTab: AppTab
+    @Published var selectedTab: AppTab
 
     init(initialTab: AppTab = .home) {
         self.selectedTab = initialTab
@@ -44,21 +44,20 @@ enum AppTab: Int, CaseIterable {
 }
 
 struct AppTabRootView: View {
-    @StateObject var viewModel = AppViewModel()
     let tab: AppTab
 
     var body: some View {
         switch tab {
         case .home:
-            HomeView(viewModel: viewModel)
+            HomeView()
         case .exercises:
-            ExerciseLibraryView(viewModel: viewModel)
+            ExerciseLibraryView()
         case .statistics:
-            StatisticsView(viewModel: viewModel)
+            StatisticsView()
         case .account:
             AccountView()
         case .training:
-            TrainingView(viewModel: viewModel)
+            TrainingView()
         }
     }
 }

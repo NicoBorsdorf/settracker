@@ -8,7 +8,7 @@ import SwiftData
 import SwiftUI
 
 struct HomeView: View {
-    @ObservedObject var viewModel: AppViewModel
+    @EnvironmentObject var viewModel: AppViewModel
 
     var body: some View {
             NavigationStack {
@@ -17,7 +17,7 @@ struct HomeView: View {
                 }
                 .navigationTitle("trainingLog")
                 .toolbar{
-                    NavigationLink(destination: TrainingView(viewModel: viewModel), label: {
+                    NavigationLink(destination: TrainingView(), label: {
                         Label("", systemImage: "plus")
                     })
                 }
@@ -34,7 +34,7 @@ struct HomeView: View {
                 Section(header: Text(formatWeekRange(group.weekStart))) {
                     ForEach(group.trainings) { training in
                         NavigationLink {
-                            TrainingView(training: training, viewModel: viewModel)
+                            TrainingView(training: training)
                         } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: 6) {
@@ -84,5 +84,5 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(viewModel: AppViewModel())
+    HomeView()
 }

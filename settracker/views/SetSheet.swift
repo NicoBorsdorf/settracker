@@ -13,7 +13,7 @@ import SwiftUI
 
 struct SetSheet: View {
     // Data sources and callbacks
-    private var appExercises: [Exercise] = AppViewModel().exercises
+    var appExercises: [Exercise]
     var onCancel: () -> Void
     var onSave: (TrainingExercise) -> Void
 
@@ -30,12 +30,14 @@ struct SetSheet: View {
 
     // MARK: Init
     init(
+        appExercises: [Exercise],
         trainingExercise: TrainingExercise?,
         onCancel: @escaping () -> Void,
         onSave: @escaping (TrainingExercise) -> Void
     ) {
         self.onCancel = onCancel
         self.onSave = onSave
+        self.appExercises = appExercises
 
         if let t = trainingExercise {
             _category = State(initialValue: t.category)
@@ -431,6 +433,7 @@ struct SetSheet: View {
 
 #Preview {
     SetSheet(
+        appExercises: AppViewModel().exercises,
         trainingExercise: TrainingExercise(
             exercise: AppViewModel().exercises.first
                 ?? Exercise(name: "Bench Press", category: .push),

@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct TrainingView: View {
-    @ObservedObject var viewModel: AppViewModel
+    @EnvironmentObject var viewModel: AppViewModel
     @Environment(\.dismiss) private var dismiss
 
     // The working training being edited/created
@@ -23,8 +23,7 @@ struct TrainingView: View {
     @State private var editorExercise: TrainingExercise?  // for editing an existing exercise
 
     // MARK: - Init
-    init(training: Training? = nil, viewModel: AppViewModel) {
-        self.viewModel = viewModel
+    init(training: Training? = nil) {
         if let t = training {
             _training = State(initialValue: t)
             _selectedType = State(initialValue: t.type)
@@ -73,6 +72,7 @@ struct TrainingView: View {
                 item: $editorExercise,
                 content: { exercise in
                     SetSheet(
+                        appExercises: viewModel.exercises,
                         trainingExercise: exercise,
                         onCancel: { editorExercise = nil },
                         onSave: { updated in
@@ -90,6 +90,7 @@ struct TrainingView: View {
             )
             .sheet(isPresented: $showSetSheet) {
                 SetSheet(
+                    appExercises: viewModel.exercises,
                     trainingExercise: nil,
                     onCancel: { showSetSheet = false },
                     onSave: { newEx in
@@ -376,5 +377,5 @@ extension Double {
 }
 
 #Preview {
-    TrainingView(viewModel: AppViewModel())
+    TrainingView()
 }

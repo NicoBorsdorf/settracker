@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct StatisticsView: View {
-    @ObservedObject var viewModel: AppViewModel
+    @EnvironmentObject var viewModel: AppViewModel
 
     // MARK: - Computed Stats
     private var trainings: [Training] { viewModel.trainings }
@@ -147,5 +147,5 @@ struct StatisticsView: View {
 }
 
 #Preview {
-    StatisticsView(viewModel: AppViewModel())
+    StatisticsView()
 }

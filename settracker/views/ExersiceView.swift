@@ -9,7 +9,7 @@ import SwiftData
 import SwiftUI
 
 struct ExerciseLibraryView: View {
-    @ObservedObject var viewModel: AppViewModel
+    @EnvironmentObject var viewModel: AppViewModel
     @State private var editingCategory: Category? = nil
 
     var body: some View {
@@ -207,5 +207,5 @@ struct ExerciseSheet: View {
 }
 
 #Preview {
-    ExerciseLibraryView(viewModel: AppViewModel())
+    ExerciseLibraryView()
 }

@@ -10,24 +10,23 @@ import SwiftData
 
 @main
 struct settrackerApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema()
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
+    let container: ModelContainer
+    let appViewModel: AppViewModel
+    
+    init() {
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            container = try ModelContainer()
+            appViewModel = AppViewModel()
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            fatalError("Failed to initialize container: \(error)")
         }
-    }()
-
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(container)
+                .environmentObject(appViewModel)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
-
-
-

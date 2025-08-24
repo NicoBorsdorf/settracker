@@ -58,7 +58,7 @@ func buildDefaultTrainingExercise(from exercise: Exercise) -> TrainingExercise {
         ]
         return TrainingExercise(
             exercise: exercise,
-            category: Category.push,
+            category: exercise.category,
             duration: 0,
             trainingSets: defaultSets
         )

@@ -57,75 +57,37 @@ struct TrainingWeekGroup {
     let trainings: [Training]
 }
 
-var e: [Exercise] = [
-    Exercise(
-        name: "Push-ups",
-        category: Category.push
-    ),
-    Exercise(
-        name: "Bench Press",
-        category: Category.push
-    ),
-    Exercise(
-        name: "Pull-ups",
-        category: Category.pull
-    ),
-    Exercise(
-        name: "Overhead Press",
-        category: Category.push
-    ),
-    Exercise(
-        name: "Treadmill Running",
-        category: Category.cardio
-    ),
-    Exercise(
-        name: "Jump Rope",
-        category: Category.cardio
-    ),
-]
 
 class AppViewModel: ObservableObject {
-    @Published var exercises = e
-
-    @Published var trainings: [Training] = [
-        Training(
-            date: Date().addingTimeInterval(-86400),  // yesterday
-            duration: 45,
-            type: TrainingType.cardio,
-            exercises: [
-                TrainingExercise(
-                    exercise: e[1],
-                    category: Category.cardio,
-                    duration: 30
-                ),
-                TrainingExercise(
-                    exercise: e[2],
-                    category: Category.cardio,
-                    duration: 15
-                ),
-            ]
-        ),
-        Training(
-            date: Date().addingTimeInterval(-172800),  // two days ago
-            duration: 60,
-            type: TrainingType.strength,
-            exercises: [
-                TrainingExercise(
-                    exercise: e[0],
-                    category: Category.push,
-                    duration: 20
-                ),
-                TrainingExercise(
-                    exercise: e[2],
-                    category: Category.pull,
-                    duration: 10,
-                    ),
-                TrainingExercise(
-                    exercise: e[1],
-                    category: Category.legs,
-                    duration: 15
-                ),
-            ]
-        ),
-    ]
+    @Published var exercises: [Exercise] = []
+    @Published var trainings: [Training] = []
+    @Published var isLoading = false
+    
+    private let dataLoader = ExerciseDataLoader.shared
+    
+    init() {
+        Task {
+            await loadInitialData()
+        }
+    }
+    
+    func loadInitialData() async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            exercises = []//try await dataLoader.loadExercisesFromiCloud()
+        } catch {
+            print("Failed to load exercises: \(error)")
+            // Handle error appropriately
+        }
+    }
+    
+    func saveExercises() async {
+        do {
+            try await dataLoader.saveExercisesToiCloud(exercises)
+        } catch {
+            print("Failed to save exercises: \(error)")
+        }
+    }
 }
