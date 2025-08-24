@@ -4,7 +4,9 @@ struct ContentView: View {
     @StateObject var router = AppRouter()
     @StateObject var viewModel = AppViewModel()
 
-    private var baseTabs: [AppTab] { [.home, .exercises, .account]}
+    private var baseTabs: [AppTab] {
+        [.home, .exercises, .statistics, .account]
+    }
 
     var body: some View {
         if #available(iOS 26.0, *) {
@@ -20,6 +22,11 @@ struct ContentView: View {
                         }
                     }
                 }
+                Tab(value: AppTab.training, role: .search) {
+                    AppTabRootView(tab: .training)
+                } label: {
+                    Label("Training", systemImage: "plus")
+                }
             }
             .tint(.accentColor)
             .tabBarMinimizeBehavior(.onScrollDown)
@@ -28,32 +35,26 @@ struct ContentView: View {
             }
         } else {
             TabView(selection: $router.selectedTab) {
-                HomeView(viewModel: viewModel)
-                    .tabItem {
+                ForEach(baseTabs, id: \.self) { tab in
+                    Tab(value: tab) {
+                        AppTabRootView(tab: tab)
+                    } label: {
                         Label {
-                            Text("home")
+                            Text(LocalizedStringKey(tab.title))
                         } icon: {
-                            Image("house")
+                            Image(systemName: tab.icon)
                         }
-                    }.tag(0)
-
-                ExerciseLibraryView(viewModel: viewModel)
-                    .tabItem {
-                        Label {
-                            Text("exercises")
-                        } icon: {
-                            Image("dumbell.fill")
-                        }
-                    }.tag(1)
-
-                AccountView()
-                    .tabItem {
-                        Label {
-                            Text("account")
-                        } icon: {
-                            Image("person.circle")
-                        }
-                    }.tag(2)
+                    }
+                }
+                Tab(value: AppTab.training, role: .search) {
+                    AppTabRootView(tab: .training)
+                } label: {
+                    Label("Training", systemImage: "plus")
+                }
+            }
+            .tint(.accentColor)
+            .onChange(of: router.selectedTab) { _, newTab in
+                router.selectedTab = newTab
             }
         }
     }

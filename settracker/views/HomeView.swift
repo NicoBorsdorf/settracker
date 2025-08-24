@@ -16,7 +16,6 @@ struct HomeView: View {
                    listView
                 }
                 .navigationTitle("trainingLog")
-                .navigationBarTitleDisplayMode(.inline)
                 .toolbar{
                     NavigationLink(destination: TrainingView(viewModel: viewModel), label: {
                         Label("", systemImage: "plus")

@@ -9,15 +9,15 @@ import SwiftUI
 
 struct Training: Identifiable {
     let id: String = UUID().uuidString
-    let date: Date
-    let duration: Int
-    let type: TrainingType
+    var date: Date
+    var duration: Int
+    var type: TrainingType
     var exercises: [TrainingExercise]
 }
 
 struct Exercise: Identifiable, Hashable {
     let id: String = UUID().uuidString
-    let name: String
+    var name: String
     let category: Category
 }
 
@@ -46,8 +46,8 @@ struct TrainingSet: Identifiable, Hashable {
 
 struct TrainingExercise: Identifiable, Hashable {
     let id: String = UUID().uuidString
-    var exercise: Exercise?
-    var category: Category?
+    var exercise: Exercise
+    var category: Category
     var duration: Int = 0
     var trainingSets: [TrainingSet] = []
 }

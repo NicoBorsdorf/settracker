@@ -24,7 +24,6 @@
 
 // MARK: ContentView
 "home" = "Startseite";
-"exercises" = "Übungen";
 "account" = "Konto";
 
 
@@ -32,8 +31,8 @@
 "exerciseLibrary" = "Übungsbibliothek";
 "add" = "Hinzufügen";
 "exerciseName" = "Übungsname";
-"newExercise" = "Neue Übung";
-"editExercise" = "Übung bearbeiten";
+"exerciseSheetInfo" = "Hier können Übungen für diese Kategorie bearbeitet, hinzufügt und entfernt werden. Alle Änderungen werden automatisch gespeichert.";
+"noExercises" = "Keine Übungen für diese Kategorie.";
 
 
 // MARK: HomeView
@@ -48,16 +47,17 @@
 "addEditSet" = "Füge Sätze hinzu und bearbeite sie.";
 "exercise" = "Übung";
 "selectExercise" = "Übung auswählen...";
-"category" = "Kategorie: %s";
 "stopwatch" = "Stoppuhr";
 "reset" = "Zurücksetzen";
 "targetDuration" = "Zieldauer";
+"cardioInfo" = "Für Cardio-Training kannst du Sätze überspringen. So kannst du Zeit sparen.";
 "savingTime" = "Beim Speichern wird die Zeit als Minuten zur Übung hinzugefügt.";
 "addSet" = "Satz hinzufügen";
 "cardioNoSet" = "Cardio-Übungen verwenden keine Sätze.";
 "noSets" = "Noch keine Sätze. Tippe auf 'Satz hinzufügen'.";
 "reps" = "Wdh.";
 "deleteSet" = "Satz löschen";
+"infoText" = "Übung hinzufügen oder bearbeiten, Zeit messen und Sätze konfigurieren. Änderungen werden gespeichert, wenn du auf „Speichern“ tippst.";
 
 
 // MARK: TrainingView
@@ -71,10 +71,17 @@
 "prevTrainings" = "Vorherige Trainings";
 "selectPrevTraining" = "Vorheriges Training auswählen";
 "copy" = "Kopieren";
-"exercises %d" = "Übungen (%d)";
+"exercises_nr" = "Übungen (%d)";
 "addExercise" = "Übung hinzufügen";
 "noExercises" = "Noch keine Übungen hinzugefügt";
 "noExercise" = "Keine Übung";
+
+
+// MARK: StatisticsView
+"avgTrainings" = "Durchschnittliche Trainings pro Woche";
+"trainingTypes" = "Trainingstypen";
+"noData" = "Noch keine Daten";
+"splits" = "Übungsaufteilung";
 
 
 // MARK: Common
@@ -87,3 +94,5 @@
 "close" = "Schließen";
 "delete" = "Löschen";
 "week" = "Woche";
+"sets" = "Sätze";
+"statistics" = "Statistik";

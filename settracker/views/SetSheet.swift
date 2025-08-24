@@ -18,15 +18,17 @@ struct SetSheet: View {
     var onSave: (TrainingExercise) -> Void
 
     // Editor state
-    @State private var trainingExercise: TrainingExercise
+    @State private var category: Category?
     @State private var selectedExercise: Exercise?
+    @State private var sets: [TrainingSet] = []
 
     // Stopwatch state
     @State private var stopwatchSeconds: Int = 0
     @State private var stopwatchRunning: Bool = false
-    private let stopwatchTimer = Timer.publish(every: 1, on: .main, in: .common)
-        .autoconnect()
+    private let stopwatchTimer =
+        Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    // MARK: Init
     init(
         trainingExercise: TrainingExercise?,
         onCancel: @escaping () -> Void,
@@ -36,77 +38,154 @@ struct SetSheet: View {
         self.onSave = onSave
 
         if let t = trainingExercise {
-            _trainingExercise = State(initialValue: t)
+            _category = State(initialValue: t.category)
             _selectedExercise = State(initialValue: t.exercise)
+            _sets = State(initialValue: t.trainingSets)
+            if t.category != .cardio {
+                // optional: preload duration into stopwatch if you want
+                _stopwatchSeconds = State(initialValue: max(0, t.duration * 60))
+            }
         } else {
-            _trainingExercise = State(initialValue: TrainingExercise())
+            _category = State(initialValue: nil)
             _selectedExercise = State(initialValue: nil)
         }
     }
 
     var body: some View {
-        NavigationStack {
+        VStack(spacing: 0) {
+            header
+            // Info text
+            infoText
+
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     exercisePickerCard
                     stopwatchCard
-                    if selectedExercise?.category != Category.cardio {
+                    if selectedExercise?.category != .cardio {
                         setsEditorCard
                     }
                 }
+                .padding(.horizontal)
+                .padding(.bottom, 12)
             }
-            .navigationTitle("Sets")
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(selectedExercise?.name.capitalized ?? "-")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarRole(.automatic)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(role: .cancel) {
+                    onCancel()
+                } label: {
+                    Image(systemName: "xmark.circle")
+                }
+                .buttonStyle(.automatic)
+                .accessibilityLabel(Text("cancel"))
+            }
+
+            ToolbarItem(placement: .confirmationAction) {
+                if #available(iOS 26.0, *) {
+                    Button(role: .confirm) {
+                        saveAndClose()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.5)
+                    .accessibilityLabel(Text("save"))
+                } else {
+                    Button {
+                        saveAndClose()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.5)
+                    .accessibilityLabel(Text("save"))
+                }
+            }
         }
     }
 
-    // MARK: Header
+    // MARK: - Header
     private var header: some View {
-        HStack {
-            Button {
-                onCancel()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.title3)
-                    .padding(6)
-            }
+        VStack(spacing: 8) {
+            Capsule()
+                .fill(Color.secondary.opacity(0.35))
+                .frame(width: 40, height: 5)
+                .padding(.top, 8)
 
-            VStack(alignment: .leading) {
-                Text("Sets")
-                    .font(.headline)
-                Text("addEditSet")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-            }
+            HStack {
+                if #available(iOS 26.0, *) {
+                    Button(role: .cancel) {
+                        onCancel()
+                    } label: {
+                        Image(systemName: "xmark.circle").font(.title2)
+                    }
+                    .buttonStyle(.glass)
+                    .accessibilityLabel(Text("cancel"))
+                } else {
+                    
+                        Button(role: .cancel) {
+                            onCancel()
+                        } label: {
+                            Image(systemName: "xmark.circle").font(.title)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("cancel"))
+                }
 
-            Spacer()
+                Spacer()
 
-            Button {
-                saveAndClose()
-            } label: {
-                Label("save", systemImage: "square.and.arrow.down")
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                Text(
+                    selectedExercise?.category.rawValue.capitalized
+                        ?? String(localized: "exercise")
+                )
+                .font(.headline)
+
+                Spacer()
+
+                if #available(iOS 26.0, *) {
+                    Button(role: .confirm) {
+                        saveAndClose()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.5)
+                    .accessibilityLabel(Text("save"))
+                } else {
+                    Button {
+                        saveAndClose()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.5)
+                    .accessibilityLabel(Text("save"))
+                }
             }
-            .disabled(
-                selectedExercise == nil
-                    || (selectedExercise?.category != .cardio
-                        && trainingExercise.trainingSets.isEmpty)
-            )
-            .opacity(
-                (selectedExercise == nil
-                    || (selectedExercise?.category != .cardio
-                        && trainingExercise.trainingSets.isEmpty)
-                    ? 0.6 : 1)
-            )
+            .padding(.horizontal)
+            .padding(.bottom, 4)
         }
-        .padding()
-        .background(Color(.systemBackground).shadow(radius: 0.5))
-        .onReceive(stopwatchTimer) { _ in
-            if stopwatchRunning { stopwatchSeconds += 1 }
-        }
+    }
+
+    // MARK: - Info
+    private var infoText: some View {
+        Text("infoText")
+            .font(.footnote)
+            .foregroundStyle(.gray)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
     }
 
     // MARK: - Sections
@@ -114,40 +193,49 @@ struct SetSheet: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Spacer()
                     Text("exercise").font(.headline)
                     Spacer()
-                }
-                HStack {
-                    Spacer()
-                    VStack(spacing: 8) {
-                        Picker("exercise", selection: $selectedExercise) {
-                            Text("selectExercise").tag(nil as Exercise?)
-                            ForEach(appExercises) { e in
-                                Text(e.name).tag(e as Exercise?)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .onChange(of: selectedExercise, initial: false) {
-                            newValue,
-                            _ in
-                            trainingExercise.exercise = newValue
-                            trainingExercise.category = newValue?.category
-                            if newValue?.category == .cardio {
-                                trainingExercise.trainingSets.removeAll()
-                            }
-                        }
 
-                        if let ex = selectedExercise {
-                            Text(
-                                "category \(ex.category.rawValue.capitalized)"
-                            )
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                    Picker(
+                        "exercise",
+                        selection: Binding(
+                            get: { selectedExercise },
+                            set: { newValue in
+                                selectedExercise = newValue
+                                category = newValue?.category
+                                if newValue?.category == .cardio {
+                                    sets.removeAll()
+                                }
+                                // reset stopwatch state on exercise change
+                                stopwatchRunning = false
+                                stopwatchSeconds = 0
+                            }
+                        )
+                    ) {
+                        Text("selectExercise").tag(nil as Exercise?)
+                        ForEach(appExercises) { e in
+                            Text(e.name).tag(e as Exercise?)
                         }
                     }
+                    .pickerStyle(.menu)
+                }
 
-                    Spacer()
+                VStack(spacing: 8) {
+                    // Category info
+                    if let ex = selectedExercise {
+                        HStack(spacing: 6) {
+                            Image(systemName: "tag")
+                                .foregroundColor(.secondary)
+                            Text(
+                                String(localized: "category")
+                                    + ": \(ex.category.rawValue.capitalized)"
+
+                            )
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                    }
                 }
             }
         }
@@ -162,13 +250,14 @@ struct SetSheet: View {
                     Button(stopwatchRunning ? "Stop" : "Start") {
                         stopwatchRunning.toggle()
                     }
-                    .buttonStyle(stopwatchRunning ? .bordered : .bordered)
+                    .buttonStyle(.borderedProminent)
                     Button("reset") {
                         stopwatchRunning = false
                         stopwatchSeconds = 0
                     }
                     .disabled(stopwatchSeconds == 0 && !stopwatchRunning)
                 }
+
                 Text(formattedTime(stopwatchSeconds))
                     .font(
                         .system(
@@ -179,24 +268,27 @@ struct SetSheet: View {
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if trainingExercise.category == .cardio {
-                    // For cardio: expose duration as minutes control
-                    Stepper(
-                        value: $trainingExercise.duration,
-                        in: 5...180,
-                        step: 5
-                    ) {
-                        HStack {
-                            Text("targetDuration")
-                            Spacer()
-                            Text("\(trainingExercise.duration) min")
-                                .foregroundColor(.secondary)
-                        }
+                // Helper text
+                if category == .cardio {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.secondary)
+                        Text(
+                            "cardioInfo"
+                        )
+                        .font(.caption)
+                        .foregroundColor(.gray)
                     }
                 } else {
-                    Text("savingTime")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.secondary)
+                        Text(
+                            "savingTime"
+                        )
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    }
                 }
             }
         }
@@ -206,7 +298,7 @@ struct SetSheet: View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Sets").font(.headline)
+                    Text("sets").font(.headline)
                     Spacer()
                     Button {
                         addSet()
@@ -215,18 +307,15 @@ struct SetSheet: View {
                     }
                 }
 
-                if trainingExercise.category == .cardio {
-                    Text("cardioNoSet")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                } else if trainingExercise.trainingSets.isEmpty {
+                if sets.isEmpty {
                     Text("noSets")
                         .font(.caption)
                         .foregroundColor(.gray)
                 } else {
                     VStack(spacing: 10) {
-                        ForEach($trainingExercise.trainingSets) { $set in
-                            setRow($set)
+                        // Use snapshot of indices to avoid mutation while iterating
+                        ForEach(Array(sets.indices), id: \.self) { index in
+                            setRow(index: index)
                         }
                     }
                 }
@@ -235,48 +324,52 @@ struct SetSheet: View {
     }
 
     // MARK: - Rows
-    private func setRow(_ set: Binding<TrainingSet>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 4) {
-                Text("#\((indexForSet(id: set.wrappedValue.id) ?? 0) + 1)")
-                    .frame(width: 20, alignment: .leading)
-                Spacer()
-                Stepper(
-                    value: set.reps,
-                    in: 1...100
-                ) {
-                    Text("reps").font(.caption2)
-                    Text("\(set.wrappedValue.reps)")
-                        .foregroundColor(.secondary)
-                        .font(.subheadline).multilineTextAlignment(.center)
+    private func setRow(index: Int) -> some View {
+        let binding = Binding<TrainingSet>(
+            get: { sets[index] },
+            set: { sets[index] = $0 }
+        )
 
-                }.fixedSize()
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text("#\(index + 1)")
+                    .frame(width: 24, alignment: .leading)
+
+                // Reps
+                Stepper(value: binding.reps, in: 1...100) {
+                    HStack(spacing: 4) {
+                        Text("reps").font(.caption2)
+                        Text("\(binding.reps.wrappedValue)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .fixedSize()
 
                 Spacer()
+
+                // Weight dropdown
                 Menu {
                     ForEach(weightOptions(), id: \.self) { w in
                         Button {
-                            set.wrappedValue.weight = w
+                            binding.wrappedValue.weight = w
                         } label: {
                             Text(weightText(w))
                         }
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 6) {
                         Image(systemName: "scalemass")
-                        Text(
-                            weightText(
-                                set.wrappedValue.weight
-                            )
-                        )
+                        Text(weightText(binding.wrappedValue.weight))
                     }
-                }.fixedSize()
+                }
+                .fixedSize()
 
                 Spacer()
 
+                // Delete
                 Button(role: .destructive) {
-                    trainingExercise.trainingSets.removeAll {
-                        $0.id == set.wrappedValue.id
+                    withAnimation(.easeInOut) {
+                        sets.removeAll(where: { $0.id == binding.id })
                     }
                 } label: {
                     Image(systemName: "trash")
@@ -289,28 +382,39 @@ struct SetSheet: View {
         .cornerRadius(8)
     }
 
+    private var canSave: Bool {
+        guard let selectedExercise else { return false }
+        if selectedExercise.category == .cardio { return true }
+        return !sets.isEmpty
+    }
+
     // MARK: - Actions
     private func addSet() {
-        trainingExercise.trainingSets.append(TrainingSet(reps: 10, weight: 0))
+        sets.append(TrainingSet(reps: 10, weight: 0))
     }
 
     private func saveAndClose() {
-        trainingExercise.exercise = selectedExercise
-        trainingExercise.category = selectedExercise?.category
+        guard let selectedExercise, let category else { return }
+        var trEx = TrainingExercise(
+            exercise: selectedExercise,
+            category: category,
+            trainingSets: sets
+        )
 
         // Map stopwatch to minutes for non-cardio exercises
-        if trainingExercise.category != .cardio {
-            trainingExercise.duration = Int(
-                round(Double(stopwatchSeconds) / 60.0)
-            )
+        if category != .cardio {
+            trEx.duration = Int(round(Double(stopwatchSeconds) / 60.0))
+        } else {
+            // For cardio, store minutes either from stopwatch or leave 0
+            trEx.duration = Int(round(Double(stopwatchSeconds) / 60.0))
         }
 
-        onSave(trainingExercise)
+        onSave(trEx)
     }
 
     // MARK: - Helpers
-    private func indexForSet(id: String) -> Int? {
-        trainingExercise.trainingSets.firstIndex { $0.id == id }
+    private func weightOptions() -> [Double] {
+        Array(stride(from: 0.0, through: 200.0, by: 2.5)).map { Double($0) }
     }
 
     private func weightText(_ w: Double) -> String {
@@ -323,25 +427,18 @@ struct SetSheet: View {
         let s = seconds % 60
         return String(format: "%02d:%02d", m, s)
     }
-
-    private func weightOptions() -> [Double] {
-        return stride(from: 0.0, through: 200.0, by: 2.5).map { Double($0) }
-    }
 }
-
 
 #Preview {
-    NavigationStack {
-        SetSheet(
-            trainingExercise: TrainingExercise(
-                exercise: AppViewModel().exercises.first,
-                category: .push,
-                duration: 0,
-                trainingSets: [TrainingSet(reps: 8, weight: 50)]
-            ),
-            onCancel: {},
-            onSave: { _ in }
-        )
-    }
+    SetSheet(
+        trainingExercise: TrainingExercise(
+            exercise: AppViewModel().exercises.first
+                ?? Exercise(name: "Bench Press", category: .push),
+            category: .push,
+            duration: 0,
+            trainingSets: [TrainingSet(reps: 10, weight: 40)]
+        ),
+        onCancel: {},
+        onSave: { _ in }
+    )
 }
-

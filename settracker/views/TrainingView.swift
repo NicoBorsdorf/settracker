@@ -10,98 +10,145 @@ import SwiftUI
 
 struct TrainingView: View {
     @ObservedObject var viewModel: AppViewModel
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
+
+    // The working training being edited/created
     @State private var training: Training
 
+    // UI state
+    @State private var selectedType: TrainingType?
+    @State private var showPrevPicker = false
+    @State private var selectedPrevTrainingId: String?
+    @State private var showSetSheet = false
+    @State private var editorExercise: TrainingExercise?  // for editing an existing exercise
+
+    // MARK: - Init
     init(training: Training? = nil, viewModel: AppViewModel) {
+        self.viewModel = viewModel
         if let t = training {
             _training = State(initialValue: t)
-            _type = State(initialValue: t.type)
+            _selectedType = State(initialValue: t.type)
         } else {
             _training = State(
                 initialValue: .init(
                     date: Date(),
                     duration: 0,
-                    type: TrainingType.strength,
+                    type: .strength,
                     exercises: []
                 )
             )
+            _selectedType = State(initialValue: .strength)
         }
-        self.viewModel = viewModel
     }
 
-    @State private var type: TrainingType? = nil
-    @State private var showTrainings = false
-    @State private var prevTraining: String? = nil
-
-    // Sheet state for add exercise
-    @State private var showSetSheet = false
-
+    // MARK: - Body
     var body: some View {
-      NavigationStack {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    trainingDetails
-                    copyFromPrevious
-                    exerciseSection
+                    headerCard
+                    copyPreviousCard
+                    exercisesCard
                 }
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Training - \(training.date.formatted(date: .numeric, time: .omitted))")
-            .toolbar{
-                if #available(iOS 26.0, *){
-                    ToolbarItem(placement: .confirmationAction){
-                        Button("",systemImage: "square.and.arrow.down", role: .confirm){
-                            saveTraining()
-                        }
-                        .disabled(type == nil || training.exercises.isEmpty)
-                        .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
+            .navigationTitle(
+                "Training - \(training.date.formatted(date: .numeric, time: .omitted))"
+            )
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        saveTraining()
+                    } label: {
+                        Image(systemName: "square.and.arrow.down")
                     }
-                } else {
-                    ToolbarItem(placement: .confirmationAction){
-                        Button{
-                            saveTraining()
-                        } label: {
-                            Label("Save", systemImage: "square.and.arrow.down")
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-                        .disabled(type == nil || training.exercises.isEmpty)
-                        .opacity(type == nil || training.exercises.isEmpty ? 0.6 : 1)
-                    }
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.5)
+                    .accessibilityLabel(Text("save"))
                 }
             }
-            //.navigationSubtitle("createWorkout")
-      }
-    }
-
-  
-    // MARK: Training Details
-    private var trainingDetails: some View {
-        SectionCard {
-            HStack(alignment: .center) {
-                Text("trainingType").font(.headline)
-                Spacer()
-                Picker("category", selection: $type) {
-                    Text("selectType").tag(nil as TrainingType?)
-                    ForEach(TrainingType.allCases, id: \.rawValue) { t in
-                        Text(t.rawValue).tag(t)
-                    }
+            .sheet(
+                item: $editorExercise,
+                content: { exercise in
+                    SetSheet(
+                        trainingExercise: exercise,
+                        onCancel: { editorExercise = nil },
+                        onSave: { updated in
+                            if let idx = training.exercises.firstIndex(where: {
+                                $0.id == updated.id
+                            }) {
+                                training.exercises[idx] = updated
+                            } else {
+                                training.exercises.append(updated)
+                            }
+                            editorExercise = nil
+                        }
+                    )
                 }
-                .pickerStyle(.menu)
+            )
+            .sheet(isPresented: $showSetSheet) {
+                SetSheet(
+                    trainingExercise: nil,
+                    onCancel: { showSetSheet = false },
+                    onSave: { newEx in
+                        training.exercises.append(newEx)
+                        showSetSheet = false
+                    }
+                )
             }
         }
     }
-    
-    // MARK: Copy from Previous
-    private var copyFromPrevious: some View {
+
+    private var canSave: Bool {
+        selectedType != nil && !training.exercises.isEmpty
+    }
+
+    // MARK: - Cards
+
+    private var headerCard: some View {
         SectionCard {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
+                    Text("trainingType")
+                        .font(.headline)
+                    Spacer()
+                    Picker("category", selection: $selectedType) {
+                        Text("selectType").tag(nil as TrainingType?)
+                        ForEach(TrainingType.allCases, id: \.rawValue) { t in
+                            Text(t.rawValue.capitalized).tag(Optional(t))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: selectedType) { _, newValue in
+                        if let t = newValue {
+                            training.type = t
+                        }
+                    }
+                }
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.secondary)
+                    DatePicker(
+                        "",
+                        selection: Binding(
+                            get: { training.date },
+                            set: { training.date = $0 }
+                        ),
+                        displayedComponents: [.date]
+                    )
+                    .labelsHidden()
+                }
+            }
+        }
+    }
+
+    // MARK: Copy from previous card
+    private var copyPreviousCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("copyFromPrev")
                             .font(.headline)
@@ -111,24 +158,21 @@ struct TrainingView: View {
                     }
                     Spacer()
                     Button {
-                        withAnimation(.easeInOut) {
-                            showTrainings.toggle()
-                        }
+                        withAnimation(.easeInOut) { showPrevPicker.toggle() }
                     } label: {
                         Image(
-                            systemName: showTrainings
-                                ? "chevron.up"
-                                : "chevron.down"
+                            systemName: showPrevPicker
+                                ? "chevron.up" : "chevron.down"
                         )
                         .foregroundColor(.blue)
                         .padding(8)
                         .background(Color(.systemGray6))
                         .clipShape(Circle())
                     }
-                    .accessibilityLabel("togglePrevTrainings")
+                    .accessibilityLabel(Text("togglePrevTrainings"))
                 }
 
-                if showTrainings {
+                if showPrevPicker {
                     VStack(alignment: .leading, spacing: 8) {
                         if viewModel.trainings.isEmpty {
                             Text("noPrevTrainings")
@@ -137,18 +181,16 @@ struct TrainingView: View {
                         } else {
                             Picker(
                                 "prevTrainings",
-                                selection: $prevTraining
+                                selection: $selectedPrevTrainingId
                             ) {
-                                Text("selectPrevTraining").tag(
-                                    String?.none
-                                )
+                                Text("selectPrevTraining").tag(String?.none)
                                 ForEach(
                                     viewModel.trainings
                                         .filter { !$0.exercises.isEmpty }
-                                        .prefix(10)
+                                        .prefix(20)
                                 ) { t in
                                     Text(
-                                        "\(t.type) | "
+                                        "\(t.type.rawValue) | "
                                             + t.date.formatted(
                                                 date: .numeric,
                                                 time: .omitted
@@ -159,38 +201,43 @@ struct TrainingView: View {
                             }
                             .pickerStyle(.inline)
                         }
-
                         HStack {
                             Spacer()
                             Button {
-                                if let id = prevTraining {
+                                if let id = selectedPrevTrainingId {
                                     copyFromTraining(id)
                                     withAnimation(.easeInOut) {
-                                        showTrainings = false
+                                        showPrevPicker = false
                                     }
-                                    prevTraining = nil
+                                    selectedPrevTrainingId = nil
                                 }
                             } label: {
                                 Label("copy", systemImage: "doc.on.doc")
                             }
-                            .disabled(prevTraining == nil)
+                            .disabled(selectedPrevTrainingId == nil)
                             .buttonStyle(.borderedProminent)
                         }
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .frame(maxWidth: .infinity)
         }
     }
 
-    // MARK: - Exercise section
-    private var exerciseSection: some View {
+    // MARK: Exercise card
+    private var exercisesCard: some View {
         SectionCard {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text(LocalizedStringKey("exercises \(training.exercises.count)"))
-                        .font(.headline)
+                    Text(
+                        String(
+                            format: NSLocalizedString(
+                                "exercises_nr",
+                                comment: "\(training.exercises.count)"
+                            )                            
+                        )
+                    )
+                    .font(.headline)
                     Spacer()
                     Button {
                         showSetSheet = true
@@ -198,19 +245,7 @@ struct TrainingView: View {
                         Label("addExercise", systemImage: "plus")
                     }
                     .disabled(viewModel.exercises.isEmpty)
-                    .sheet(isPresented: $showSetSheet) {
-                        SetSheet(
-                            trainingExercise: nil,
-                            onCancel: {
-                                showSetSheet = false
-                            },
-                            onSave: { t in
-                                training.exercises.append(t)
-                                showSetSheet = false
-                            }
-                        )
-
-                    }
+                    .accessibilityIdentifier("addExerciseButton")
                 }
 
                 if training.exercises.isEmpty {
@@ -220,18 +255,12 @@ struct TrainingView: View {
                 } else {
                     VStack(spacing: 10) {
                         ForEach(training.exercises) { ex in
-                            ExerciseRow(
+                            ExerciseRowView(
                                 trainingExercise: ex,
+                                onEdit: { editorExercise = $0 },
                                 onDelete: {
                                     training.exercises.removeAll {
                                         $0.id == ex.id
-                                    }
-                                },
-                                onEdit: { updated in
-                                    if let idx = training.exercises.firstIndex(
-                                        where: { $0.id == updated.id }
-                                    ) {
-                                        training.exercises[idx] = updated
                                     }
                                 }
                             )
@@ -239,75 +268,79 @@ struct TrainingView: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity)
         }
     }
 
-    // MARK: - Helper Views & Methods
-    func saveTraining() {
-        guard let selectedType = type, !training.exercises.isEmpty else {
-            return
+    // MARK: - Actions
+
+    private func saveTraining() {
+        guard let selectedType else { return }
+        training.type = selectedType
+
+        if let idx = viewModel.trainings.firstIndex(where: {
+            $0.id == training.id
+        }) {
+            viewModel.trainings[idx] = training
+        } else {
+            let newTraining = Training(
+                date: training.date,
+                duration: training.duration,
+                type: training.type,
+                exercises: training.exercises
+            )
+            viewModel.trainings.append(newTraining)
         }
-        if let idxExisting = viewModel.trainings.firstIndex(where: { $0.id == training.id }) {
-            viewModel.trainings[idxExisting] = training
-            dismiss()
-            return
-        }
-        let newTraining = Training(
-            date: training.date,
-            duration: training.duration,
-            type: selectedType,
-            exercises: training.exercises
-        )
-        viewModel.trainings.append(newTraining)
         dismiss()
     }
 
-    func copyFromTraining(_ trainingId: String) {
-        guard let toCopy = viewModel.trainings.first(where: { $0.id == trainingId }) else { return }
-        // Deep copy exercises with new IDs and duplicated sets
-        let copied: [TrainingExercise] = toCopy.exercises.map { src in
-            return TrainingExercise(
-                exercise: src.exercise,
-                category: src.category,
-                duration: src.duration,
-                trainingSets: src.trainingSets
+    private func copyFromTraining(_ trainingId: String) {
+        guard
+            let src = viewModel.trainings.first(where: { $0.id == trainingId })
+        else { return }
+        // Deep copy: duplicate exercises; if your TrainingExercise is a struct, this copies by value.
+        // If you rely on unique IDs per exercise, you may want to generate new IDs here.
+        let copied = src.exercises.map { ex in
+            TrainingExercise(
+                exercise: ex.exercise,
+                category: ex.category,
+                duration: ex.category == .cardio ? ex.duration : ex.duration,
+                trainingSets: ex.trainingSets  // value-copied if struct
             )
         }
-
         training.exercises.append(contentsOf: copied)
     }
 }
 
-// Per-exercise row with quick overview and delete, edit hooks
-private struct ExerciseRow: View {
+// MARK: - Exercise Row
+private struct ExerciseRowView: View {
     var trainingExercise: TrainingExercise
-    var onDelete: () -> Void
     var onEdit: (TrainingExercise) -> Void
+    var onDelete: () -> Void
 
     @State private var showEditor = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(trainingExercise.exercise?.name ?? "noEcerise").font(
-                        .subheadline
-                    )
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(trainingExercise.exercise.name)
+                        .font(.subheadline)
                     Text(summaryText(trainingExercise))
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
                 Spacer()
-                Button {
-                    showEditor = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-                Button(role: .destructive) {
-                    onDelete()
-                } label: {
-                    Image(systemName: "trash")
+                HStack(spacing: 10) {
+                    Button {
+                        showEditor = true
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                    }
                 }
             }
         }
@@ -315,60 +348,33 @@ private struct ExerciseRow: View {
         .background(Color(.systemGray6))
         .cornerRadius(8)
         .sheet(isPresented: $showEditor) {
-            SetSheet(
-                trainingExercise: trainingExercise,
-                onCancel: { showEditor = false },
-                onSave: { updated in
-                    onEdit(updated)
-                    showEditor = false
-                }
-            )
+
         }
     }
 
     private func summaryText(_ tEx: TrainingExercise) -> String {
-        if let ex = tEx.exercise, ex.category == Category.cardio {
+        if tEx.category == .cardio {
             return "\(tEx.duration) min"
         }
         let sets = tEx.trainingSets
+        guard !sets.isEmpty else { return "No sets configured" }
         let setCount = sets.count
-        let repSamples = sets.prefix(3).map {
-            "\($0.reps)x\(($0.weight).cleanWeight)"
-        }
-        .joined(separator: ", ")
-        return
-            "\(setCount) sets • \(repSamples)\(sets.count > 3 ? ", ..." : "")"
-
+        let sample = sets.prefix(3)
+            .map { "\($0.reps)x\($0.weight.cleanWeight)" }
+            .joined(separator: ", ")
+        return "\(setCount) sets • \(sample)\(sets.count > 3 ? ", ..." : "")"
     }
 }
 
+// MARK: - Helpers
 extension Double {
     fileprivate var cleanWeight: String {
-        let int = Int(self)
-        return Double(int) == self ? "\(int)kg" : String(format: "%.1fkg", self)
+        let intVal = Int(self)
+        return Double(intVal) == self
+            ? "\(intVal)kg" : String(format: "%.1fkg", self)
     }
 }
-
-struct SectionCard<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack {
-                content
-            }.frame(maxWidth: .infinity)
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.03), radius: 4, x: 0, y: 2)
-        .frame(maxWidth: .infinity)
-
-    }
-}
-
 
 #Preview {
     TrainingView(viewModel: AppViewModel())
 }
-

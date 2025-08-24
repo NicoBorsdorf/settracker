@@ -24,7 +24,6 @@
 
 // MARK: ContentView
 "home" = "Home";
-"exercises" = "Exercises";
 "account" = "Account";
 
 
@@ -32,8 +31,8 @@
 "exerciseLibrary" = "Exercise Library";
 "add" = "Add";
 "exerciseName" = "Exercise name";
-"newExercise" = "New Exercise";
-"editExercise" = "Edit Exercise";
+"exerciseSheetInfo" = "Here you can edit, add, and remove exercises for this category. All changes are saved automatically.";
+"noExercises" = "No exercises for this category.";
 
 
 // MARK: HomeView
@@ -48,16 +47,17 @@
 "addEditSet" = "Add and edit your sets.";
 "exercise" = "Exercise";
 "selectExercise" = "Select exercise...";
-"category" = "Category: %@";
 "stopwatch" = "Stopwatch";
 "reset" = "Reset";
 "targetDuration" = "Target Duration";
+"cardioInfo" = "For cardio, you can skip sets. Time can be saved as minutes.";
 "savingTime" = "When saving, time is added as minutes to the exercise.";
 "addSet" = "Add set";
 "cardioNoSet" = "Cardio exercises do not use sets.";
 "noSets" = "No sets yet. Tap 'Add set'.";
 "reps" = "Reps";
 "deleteSet" = "Delete set";
+"infoText" = "Add or edit an exercise, track time, and configure sets. Changes are saved when you tap Save.";
 
 
 // MARK: TrainingView
@@ -71,10 +71,17 @@
 "prevTrainings" = "Previous trainings";
 "selectPrevTraining" = "Select previous training";
 "copy" = "Copy";
-"exercises %d" = "Exercises (%@)";
+"exercises_nr" = "Exercises (%d)";
 "addExercise" = "Add exercise";
 "noExercises" = "No exercises added yet";
 "noExercise" = "No exercise";
+
+
+// MARK: StatisticsView
+"avgTrainings" = "Average Trainings per Week";
+"trainingTypes" = "Training Types";
+"noData" = "No data yet";
+"splits" = "Exercise Split";
 
 
 // MARK: Common
@@ -87,3 +94,5 @@
 "close" = "Close";
 "delete" = "Delete";
 "week" = "Week";
+"sets" = "Sets";
+"statistics" = "Statistics";
