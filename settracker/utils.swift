@@ -6,31 +6,29 @@
 //
 
 import SwiftUI
+import SwiftData
+
 
 func groupTrainingsByWeek(_ trainings: [Training]) -> [TrainingWeekGroup] {
-    var grouped: [String: [Training]] = [:]
-
-    for training in trainings {
-        let weekStart = getWeekStart(training.date)
-        let key = weekStart.description
-        grouped[key, default: []].append(training)
+    let grouped = Dictionary(grouping: trainings) { t in
+        startOfWeek(for: t.date)
     }
 
-    return grouped.map { key, value in
+    let groups = grouped.map { (weekStart, items) in
         TrainingWeekGroup(
-            weekStart: ISO8601DateFormatter().date(from: key) ?? Date(),
-            trainings: value
+            week: weekStart,
+            weekString: formatWeekRange(weekStart),
+            trainings: items.sorted { $0.date > $1.date }
         )
-    }.sorted { $0.weekStart > $1.weekStart }
+    }
+
+    return groups.sorted { $0.week > $1.week }
 }
 
-func getWeekStart(_ date: Date) -> Date {
-    let calendar = Calendar.current
-    let components = calendar.dateComponents(
-        [.yearForWeekOfYear, .weekOfYear],
-        from: date
-    )
-    return calendar.date(from: components) ?? date
+func startOfWeek(for date: Date, calendar: Calendar = .current) -> Date {
+    let cal = calendar
+    let comps = cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+    return cal.date(from: comps) ?? date
 }
 
 func formatWeekRange(_ start: Date) -> String {
@@ -40,29 +38,6 @@ func formatWeekRange(_ start: Date) -> String {
         from: start
     )
     return "\(String(localized: "week")) \(components.weekOfYear ?? 0) / \(components.yearForWeekOfYear ?? 0)"
-}
-
-func buildDefaultTrainingExercise(from exercise: Exercise) -> TrainingExercise {
-    if exercise.category == Category.cardio {
-        return TrainingExercise(
-            exercise: exercise,
-            category: exercise.category,
-            duration: 20,
-            trainingSets: []
-        )
-    } else {
-        let defaultSets = [
-            TrainingSet(reps: 10, weight: 0),
-            TrainingSet(reps: 10, weight: 0),
-            TrainingSet(reps: 10, weight: 0),
-        ]
-        return TrainingExercise(
-            exercise: exercise,
-            category: exercise.category,
-            duration: 0,
-            trainingSets: defaultSets
-        )
-    }
 }
 
 func groupExercisesByCategory(_ exercises: [Exercise]) -> [(

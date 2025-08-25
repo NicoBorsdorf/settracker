@@ -1,59 +1,85 @@
 import Foundation
-import SwiftData
 
-class ExerciseDataLoader {
-    static let shared = ExerciseDataLoader()
-    private let fileManager = FileManager.default
+actor AppDataStore {
+    static let shared = AppDataStore()
 
-    // Default exercises as fallback
-    private let defaultExercises = [
-        Exercise(name: "Bench Press", category: Category.push),
-        Exercise(name: "Squat", category: Category.legs),
-        Exercise(name: "Deadlift", category: Category.pull),
+    private let fm = FileManager.default
+    private let containerFolderName = "settracker"
+    private let stateFileName = "state.bin"
+
+    // Default app exercises (not persisted; only user-added are persisted)
+    let defaultExercises: [Exercise] = [
+        Exercise(name: "Bench Press", category: .push, isDefault: true),
+        Exercise(name: "Squat", category: .legs, isDefault: true),
+        Exercise(name: "Deadlift", category: .pull, isDefault: true),
     ]
 
-    func loadDataFromiCloud() async throws -> [Exercise] {
-        // Try to load from iCloud first
-        if let iCloudURL = getiCloudExercisesURL() {
-            do {
-                let data = try Data(contentsOf: iCloudURL)
-                let exercises = [] as [Exercise]
-                return exercises
-            } catch {
-                print(
-                    "Failed to load from iCloud: \(error.localizedDescription)"
-                )
-            }
-        }
-
-        // Fallback to default exercises
-        return defaultExercises
+    // MARK: Paths
+    private func iCloudDocumentsURL() -> URL? {
+        fm.url(forUbiquityContainerIdentifier: nil)?
+            .appendingPathComponent("Documents", isDirectory: true)
     }
 
-    private func getiCloudExercisesURL() -> URL? {
-        guard
-            let iCloudURL = fileManager.url(forUbiquityContainerIdentifier: nil)
-        else {
-            print("iCloud not available")
-            return nil
-        }
-
-        let documentsURL = iCloudURL.appendingPathComponent("Documents")
-        let exercisesURL = documentsURL.appendingPathComponent("exercises.json")
-
-        return exercisesURL
+    private func localDocumentsURL() -> URL {
+        fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
-    func saveExercisesToiCloud(_ exercises: [Exercise]) async throws {
-        guard let iCloudURL = getiCloudExercisesURL() else {
-            throw NSError(
-                domain: "ExerciseData",
-                code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "iCloud not available"]
+    private func ensureAppFolder() throws -> URL {
+        // Prefer iCloud folder if available
+        if let iCloudDocs = iCloudDocumentsURL() {
+            let appURL = iCloudDocs.appendingPathComponent(containerFolderName, isDirectory: true)
+            try createFolderIfNeeded(at: appURL)
+            return appURL
+        }
+        // Fallback to local
+        let local = localDocumentsURL()
+            .appendingPathComponent(containerFolderName, isDirectory: true)
+        try createFolderIfNeeded(at: local)
+        return local
+    }
+
+    private func createFolderIfNeeded(at url: URL) throws {
+        var isDir: ObjCBool = false
+        if !fm.fileExists(atPath: url.path, isDirectory: &isDir) {
+            try fm.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+        }
+    }
+
+    private func stateFileURL() throws -> URL {
+        let folder = try ensureAppFolder()
+        return folder.appendingPathComponent(stateFileName, isDirectory: false)
+    }
+
+    // MARK: Load/Save
+
+    func load() async throws -> AppStateFile {
+        let url = try stateFileURL()
+        guard fm.fileExists(atPath: url.path) else {
+            // First run → build initial state using defaults
+            return AppStateFile(
+                schemaVersion: 1,
+                settings: AppSettings(),
+                userExercises: [], // no user exercises yet
+                trainings: [],
+                statistics: nil
             )
         }
 
-        //let data = try JSONEncoder().encode(exercises)
-        //try data.write(to: iCloudURL)
+        let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let state = try decoder.decode(AppStateFile.self, from: data)
+        return state
+    }
+
+    func save(_ state: AppStateFile) async throws {
+        let url = try stateFileURL()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        let jsonData = try encoder.encode(state)
+
+        // Write JSON bytes into a single binary file atomically
+        try jsonData.write(to: url, options: [.atomic])
     }
 }

@@ -12,11 +12,12 @@ struct TrainingView: View {
     @EnvironmentObject var viewModel: AppViewModel
     @Environment(\.dismiss) private var dismiss
 
-    // The working training being edited/created
-    @State private var training: Training
-
     // UI state
+    private var trainingId: String?
     @State private var selectedType: TrainingType?
+    @State private var trainingExercises: [TrainingExercise] = []
+    @State private var trainingDate: Date = Date()
+    @State private var trainingDuration: Int = 0
     @State private var showPrevPicker = false
     @State private var selectedPrevTrainingId: String?
     @State private var showSetSheet = false
@@ -25,18 +26,11 @@ struct TrainingView: View {
     // MARK: - Init
     init(training: Training? = nil) {
         if let t = training {
-            _training = State(initialValue: t)
+            trainingId = t.id
             _selectedType = State(initialValue: t.type)
-        } else {
-            _training = State(
-                initialValue: .init(
-                    date: Date(),
-                    duration: 0,
-                    type: .strength,
-                    exercises: []
-                )
-            )
-            _selectedType = State(initialValue: .strength)
+            _trainingDate = State(initialValue: t.date)
+            _trainingExercises = State(initialValue: t.exercises)
+            _trainingDuration = State(initialValue: t.duration)
         }
     }
 
@@ -53,7 +47,7 @@ struct TrainingView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle(
-                "Training - \(training.date.formatted(date: .numeric, time: .omitted))"
+                "Training - \(trainingDate.formatted(date: .numeric, time: .omitted))"
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -76,12 +70,12 @@ struct TrainingView: View {
                         trainingExercise: exercise,
                         onCancel: { editorExercise = nil },
                         onSave: { updated in
-                            if let idx = training.exercises.firstIndex(where: {
+                            if let idx = trainingExercises.firstIndex(where: {
                                 $0.id == updated.id
                             }) {
-                                training.exercises[idx] = updated
+                                trainingExercises[idx] = updated
                             } else {
-                                training.exercises.append(updated)
+                                trainingExercises.append(updated)
                             }
                             editorExercise = nil
                         }
@@ -94,7 +88,7 @@ struct TrainingView: View {
                     trainingExercise: nil,
                     onCancel: { showSetSheet = false },
                     onSave: { newEx in
-                        training.exercises.append(newEx)
+                        trainingExercises.append(newEx)
                         showSetSheet = false
                     }
                 )
@@ -103,7 +97,7 @@ struct TrainingView: View {
     }
 
     private var canSave: Bool {
-        selectedType != nil && !training.exercises.isEmpty
+        selectedType != nil && !trainingExercises.isEmpty
     }
 
     // MARK: - Cards
@@ -124,7 +118,7 @@ struct TrainingView: View {
                     .pickerStyle(.menu)
                     .onChange(of: selectedType) { _, newValue in
                         if let t = newValue {
-                            training.type = t
+                            selectedType = t
                         }
                     }
                 }
@@ -134,8 +128,8 @@ struct TrainingView: View {
                     DatePicker(
                         "",
                         selection: Binding(
-                            get: { training.date },
-                            set: { training.date = $0 }
+                            get: { trainingDate },
+                            set: { trainingDate = $0 }
                         ),
                         displayedComponents: [.date]
                     )
@@ -234,8 +228,8 @@ struct TrainingView: View {
                         String(
                             format: NSLocalizedString(
                                 "exercises_nr",
-                                comment: "\(training.exercises.count)"
-                            )                            
+                                comment: "\(trainingExercises.count)"
+                            )
                         )
                     )
                     .font(.headline)
@@ -249,18 +243,18 @@ struct TrainingView: View {
                     .accessibilityIdentifier("addExerciseButton")
                 }
 
-                if training.exercises.isEmpty {
+                if trainingExercises.isEmpty {
                     Text("noExercises")
                         .foregroundColor(.gray)
                         .padding(.bottom, 8)
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(training.exercises) { ex in
+                        ForEach(trainingExercises) { ex in
                             ExerciseRowView(
                                 trainingExercise: ex,
                                 onEdit: { editorExercise = $0 },
                                 onDelete: {
-                                    training.exercises.removeAll {
+                                    trainingExercises.removeAll {
                                         $0.id == ex.id
                                     }
                                 }
@@ -276,18 +270,22 @@ struct TrainingView: View {
 
     private func saveTraining() {
         guard let selectedType else { return }
-        training.type = selectedType
 
         if let idx = viewModel.trainings.firstIndex(where: {
-            $0.id == training.id
+            $0.id == trainingId
         }) {
-            viewModel.trainings[idx] = training
+            var existing = viewModel.trainings[idx]
+            existing.exercises = trainingExercises
+            existing.date = trainingDate
+            existing.duration = trainingDuration
+            existing.type = selectedType
+            viewModel.trainings[idx] = existing
         } else {
             let newTraining = Training(
-                date: training.date,
-                duration: training.duration,
-                type: training.type,
-                exercises: training.exercises
+                date: trainingDate,
+                duration: trainingDuration,
+                type: selectedType,
+                exercises: trainingExercises
             )
             viewModel.trainings.append(newTraining)
         }
@@ -308,12 +306,14 @@ struct TrainingView: View {
                 trainingSets: ex.trainingSets  // value-copied if struct
             )
         }
-        training.exercises.append(contentsOf: copied)
+        trainingExercises.append(contentsOf: copied)
     }
 }
 
 // MARK: - Exercise Row
 private struct ExerciseRowView: View {
+    @EnvironmentObject var viewModel: AppViewModel
+
     var trainingExercise: TrainingExercise
     var onEdit: (TrainingExercise) -> Void
     var onDelete: () -> Void
@@ -324,7 +324,7 @@ private struct ExerciseRowView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(trainingExercise.exercise.name)
+                    Text(trainingExercise.exercise)
                         .font(.subheadline)
                     Text(summaryText(trainingExercise))
                         .font(.caption)
@@ -349,7 +349,14 @@ private struct ExerciseRowView: View {
         .background(Color(.systemGray6))
         .cornerRadius(8)
         .sheet(isPresented: $showEditor) {
-
+            SetSheet(
+                appExercises: viewModel.exercises,
+                trainingExercise: trainingExercise,
+                onCancel: { showEditor = false },
+                onSave: { updated in
+                    onEdit(updated)
+                }
+            )
         }
     }
 
@@ -377,5 +384,5 @@ extension Double {
 }
 
 #Preview {
-    TrainingView()
+    TrainingView().environmentObject(AppViewModel())
 }

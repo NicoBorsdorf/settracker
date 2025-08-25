@@ -9,6 +9,8 @@
 // MARK: AccountView
 "appearance" = "Erscheinungsbild";
 "theme" = "Thema";
+"light" = "Hell";
+"dark" = "Dunkel";
 "language" = "Sprache";
 "appLanguage" = "App-Sprache";
 "english" = "Englisch";

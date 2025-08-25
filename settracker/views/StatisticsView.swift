@@ -147,5 +147,5 @@ struct StatisticsView: View {
 }
 
 #Preview {
-    StatisticsView()
+    StatisticsView().environmentObject(AppViewModel())
 }

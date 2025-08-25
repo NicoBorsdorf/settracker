@@ -12,6 +12,13 @@ import SwiftData
 struct settrackerApp: App {
     let container: ModelContainer
     let appViewModel: AppViewModel
+    var colorScheme: ColorScheme {
+        let theme = appViewModel.settings.theme
+        if theme == .system {
+            return UIScreen.main.traitCollection.userInterfaceStyle == .dark ? .dark : .light
+        }
+        return theme == .dark ? .dark : .light
+    }
     
     init() {
         do {
@@ -27,6 +34,15 @@ struct settrackerApp: App {
             ContentView()
                 .modelContainer(container)
                 .environmentObject(appViewModel)
+                .preferredColorScheme(colorScheme(for: appViewModel.settings.theme))
+        }
+    }
+    
+    private func colorScheme(for theme: AppTheme) -> ColorScheme? {
+        switch theme {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
         }
     }
 }

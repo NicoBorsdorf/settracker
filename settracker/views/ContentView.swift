@@ -1,5 +1,5 @@
-import SwiftUI
 import Foundation
+import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: AppViewModel
@@ -44,5 +44,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView().environmentObject(AppViewModel())
 }

@@ -7,113 +7,180 @@
 
 import SwiftUI
 
-enum AppTheme: String, CaseIterable, Identifiable {
-    case system = "System"
-    case light = "Light"
-    case dark = "Dark"
-
-    var id: String { rawValue }
-    var icon: String {
-        switch self {
-        case .system: return "cog.fill"
-        case .light: return "sun.fill"
-        case .dark: return "moon.fill"
-        }
-    }
-}
-
-enum AppLanguage: String, CaseIterable, Identifiable {
-    case english = "english"
-    case german = "german"
-
-    var id: String { rawValue }
-}
-
 struct AccountView: View {
-    @AppStorage("appTheme") private var appTheme: AppTheme = .system
-    @AppStorage("appLanguage") private var appLanguage: AppLanguage = .english
+    @EnvironmentObject var viewModel: AppViewModel
 
     @State private var isSyncing = false
     @State private var lastSync: Date? = nil
+    @State private var syncError: String? = nil
 
     var body: some View {
         NavigationStack {
-            Form {
-                // MARK: Appearance
-                Section(header: Text("appearance")) {
-                    Picker("theme", selection: $appTheme) {
-                        ForEach(AppTheme.allCases, id: \.self) { theme in
-                            Label(theme.id, systemImage: theme.icon).tag(theme)
-                        }
-                    }
-                    .pickerStyle(.segmented)
+            ScrollView {
+                VStack(spacing: 16) {
+                    appearanceCard
+                    icloudCard
+                    aboutCard
                 }
-
-                // MARK: Language
-                Section(header: Text("language")) {
-                    Picker("appLanguage", selection: $appLanguage) {
-                        ForEach(AppLanguage.allCases) { lang in
-                            Text(lang.rawValue).tag(lang)
-                        }
-                    }
-                }
-
-                // MARK: iCloud Sync
-                Section(header: Text("iCloud")) {
-                    if let lastSync = lastSync {
-                        Text(
-                            "lastSynced \(lastSync.formatted(date: .abbreviated, time: .shortened))"
-                        )
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    } else {
-                        Text("notSynced")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-
-                    Button {
-                        syncNow()
-                    } label: {
-                        if isSyncing {
-                            ProgressView()
-                        } else {
-                            Label("syncNow", systemImage: "arrow.clockwise")
-                        }
-                    }
-                }
-
-                // MARK: App Info
-                Section(header: Text("about")) {
-                    HStack {
-                        Text("Version")
-                        Spacer()
-                        Text(appVersionString())
-                            .foregroundColor(.gray)
-                    }
-
-                    NavigationLink("privacyPolicy") {
-                        Text("Privacy Policy goes here...")
-                            .padding()
-                    }
-
-                    NavigationLink("termsOfService") {
-                        Text("Terms of Service goes here...")
-                            .padding()
-                    }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle(Text("account"))
+            .onAppear {
+                if let stat = viewModel.statistics?.lastComputed {
+                    lastSync = stat
                 }
             }
-            .navigationTitle("account")
+        }
+        .preferredColorScheme(colorScheme(for: viewModel.settings.theme))
+        .tint(.accentColor)
+        .onChange(of: viewModel.settings.theme) { _, _ in
+            Task { await persistSettings() }
+        }
+        .alert(
+            "Sync Error",
+            isPresented: Binding(
+                get: { syncError != nil },
+                set: { if !$0 { syncError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(syncError ?? "")
+        }
+    }
+
+    // MARK: - Cards
+
+    private var appearanceCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("appearance")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Picker("theme", selection: $viewModel.settings.theme) {
+                    Text("System").tag(AppTheme.system)
+                    Text("Light").tag(AppTheme.light)
+                    Text("Dark").tag(AppTheme.dark)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("themePicker")
+            }
+        }
+    }
+
+    private var icloudCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("iCloud")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    if isSyncing {
+                        ProgressView()
+                            .tint(.secondary)
+                    }
+                }
+
+                if let last = lastSync {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .foregroundStyle(.secondary)
+                        Text(
+                            "\(String(localized: "lastSynced")): \(last.formatted(date: .abbreviated, time: .shortened))"
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("notSynced")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack {
+                    Spacer()
+                    Button {
+                        Task { await syncNow() }
+                    } label: {
+                        Label("syncNow", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+        }
+    }
+
+    private var aboutCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("about")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                HStack {
+                    Text("Version")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Text(appVersionString())
+                        .foregroundStyle(.secondary)
+                }
+
+                /*Divider().background(.separator)
+                
+                NavigationLink("privacyPolicy") {
+                    Text("Privacy Policy goes here...")
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.background)
+                }
+                
+                NavigationLink("termsOfService") {
+                    Text("Terms of Service goes here...")
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.background)
+                }*/
+            }
+        }
+    }
+
+    // MARK: - Actions
+
+    private func syncNow() async {
+        isSyncing = true
+        syncError = nil
+        defer { isSyncing = false }
+
+        do {
+            try await viewModel.persist()
+            lastSync = Date()
+        } catch {
+            syncError = error.localizedDescription
+        }
+    }
+
+    private func persistSettings() async {
+        do {
+            try await viewModel.persist()
+            lastSync = Date()
+        } catch {
+            print("Failed to persist settings: \(error)")
+            syncError = error.localizedDescription
         }
     }
 
     // MARK: - Helpers
-    private func syncNow() {
-        isSyncing = true
-        // Simulate sync delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            lastSync = Date()
-            isSyncing = false
+
+    private func colorScheme(for theme: AppTheme) -> ColorScheme? {
+        switch theme {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
         }
     }
 
@@ -128,5 +195,5 @@ struct AccountView: View {
 }
 
 #Preview {
-    AccountView()
+    AccountView().environmentObject(AppViewModel())
 }

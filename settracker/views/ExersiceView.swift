@@ -75,6 +75,7 @@ struct ExerciseLibraryView: View {
 
 // MARK: - Exercise Row
 private struct ExerciseRow: View {
+    @Environment(\.colorScheme) var colorScheme
    var exerciseName: Binding<String>
 
     var body: some View {
@@ -84,7 +85,7 @@ private struct ExerciseRow: View {
             Spacer()
         }
         .padding(10)
-        .background(Color(.systemGray6))
+        .background(colorScheme == .dark ? Color(.white) : Color(.systemGray))
         .cornerRadius(8)
     }
 }
@@ -100,7 +101,7 @@ struct ExerciseSheet: View {
     /// Indices of all exercises that belong to `category`
     private var categoryExerciseIndices: [Int] {
         exercises.enumerated()
-            .compactMap { index, ex in ex.category == category ? index : nil }
+            .compactMap { index, ex in ex.category == category && !ex.isDefault ? index : nil }
     }
 
     var body: some View {
@@ -137,7 +138,15 @@ struct ExerciseSheet: View {
             Divider()
 
             // List of exercises
+            let defaultExercise = exercises.filter {$0.isDefault && $0.category == category}
             List {
+                ForEach(defaultExercise, id: \.self){ ex in
+                    HStack {
+                        Text(ex.name.capitalized)
+                            .textFieldStyle(.plain)
+                        Spacer()
+                    }
+                }
                 ForEach(categoryExerciseIndices, id: \.self) { idx in
                     HStack {
                         TextField("exerciseName", text: bindingForExercise(at: idx))
@@ -207,5 +216,5 @@ struct ExerciseSheet: View {
 }
 
 #Preview {
-    ExerciseLibraryView()
+    ExerciseLibraryView().environmentObject(AppViewModel())
 }

@@ -41,7 +41,7 @@ struct SetSheet: View {
 
         if let t = trainingExercise {
             _category = State(initialValue: t.category)
-            _selectedExercise = State(initialValue: t.exercise)
+            _selectedExercise = State(initialValue: appExercises.first(where: {$0.name.lowercased() == t.exercise.lowercased()}))
             _sets = State(initialValue: t.trainingSets)
             if t.category != .cardio {
                 // optional: preload duration into stopwatch if you want
@@ -392,13 +392,13 @@ struct SetSheet: View {
 
     // MARK: - Actions
     private func addSet() {
-        sets.append(TrainingSet(reps: 10, weight: 0))
+        sets.append(TrainingSet(id: sets.count, reps: 10, weight: 0))
     }
 
     private func saveAndClose() {
         guard let selectedExercise, let category else { return }
         var trEx = TrainingExercise(
-            exercise: selectedExercise,
+            exercise: selectedExercise.name,
             category: category,
             trainingSets: sets
         )
@@ -435,11 +435,11 @@ struct SetSheet: View {
     SetSheet(
         appExercises: AppViewModel().exercises,
         trainingExercise: TrainingExercise(
-            exercise: AppViewModel().exercises.first
-                ?? Exercise(name: "Bench Press", category: .push),
+            exercise: AppViewModel().exercises.first?.name
+                ?? "Bench Press",
             category: .push,
             duration: 0,
-            trainingSets: [TrainingSet(reps: 10, weight: 40)]
+            trainingSets: [TrainingSet(id: 0, reps: 10, weight: 40)]
         ),
         onCancel: {},
         onSave: { _ in }

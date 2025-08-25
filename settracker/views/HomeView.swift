@@ -15,6 +15,7 @@ struct HomeView: View {
                 VStack {
                    listView
                 }
+                .background(Color(.systemGroupedBackground))
                 .navigationTitle("trainingLog")
                 .toolbar{
                     NavigationLink(destination: TrainingView(), label: {
@@ -26,12 +27,13 @@ struct HomeView: View {
 
     // MARK: list
     private var listView: some View {
-        List {
+        let groupedTrainings = groupTrainingsByWeek(viewModel.trainings)
+        return List {
             ForEach(
-                groupTrainingsByWeek(viewModel.trainings),
-                id: \.weekStart
+                groupedTrainings,
+                id: \.week
             ) { group in
-                Section(header: Text(formatWeekRange(group.weekStart))) {
+                Section(header: Text(group.weekString)) {
                     ForEach(group.trainings) { training in
                         NavigationLink {
                             TrainingView(training: training)
@@ -42,7 +44,7 @@ struct HomeView: View {
                                         .font(.caption)
                                 }
                                 Spacer()
-                                typeTag(for: training.type.rawValue)
+                                typeTag(for: training.type)
                             }
                             .padding(.vertical, 6)
                         }
@@ -54,7 +56,7 @@ struct HomeView: View {
     }
 
     // MARK: tag
-    private func typeTag(for type: String) -> some View {
+    private func typeTag(for type: TrainingType) -> some View {
         let (color, text) = tagStyle(for: type)
         let textComponent = Text(text)
             .font(.caption)
@@ -69,20 +71,18 @@ struct HomeView: View {
         }
     }
 
-    private func tagStyle(for type: String) -> (Color, String) {
-        switch type.lowercased() {
-        case "strength":
+    private func tagStyle(for type: TrainingType) -> (Color, String) {
+        switch type {
+        case .strength:
             return (.red, "strength")
-        case "cardio":
+        case .cardio:
             return (.green, "cardio")
-        case "mobility":
+        case .mobility:
             return (.orange, "mobility")
-        default:
-            return (.gray, type.capitalized)
         }
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView().environmentObject(AppViewModel())
 }

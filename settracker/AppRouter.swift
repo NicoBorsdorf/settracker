@@ -49,15 +49,16 @@ struct AppTabRootView: View {
     var body: some View {
         switch tab {
         case .home:
-            HomeView()
+            HomeView().accessibilityLabel(Text(self.tab.title))
         case .exercises:
-            ExerciseLibraryView()
+            ExerciseLibraryView().accessibilityLabel(Text(self.tab.title))
         case .statistics:
-            StatisticsView()
+            StatisticsView().accessibilityLabel(Text(self.tab.title))
+                .background(Color(.systemBackground))
         case .account:
-            AccountView()
+            AccountView().accessibilityLabel(Text(self.tab.title))
         case .training:
-            TrainingView()
+            TrainingView().accessibilityLabel("training")
         }
     }
 }
