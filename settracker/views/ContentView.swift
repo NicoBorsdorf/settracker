@@ -44,5 +44,8 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    ContentView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

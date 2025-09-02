@@ -17,7 +17,9 @@ struct ExerciseLibraryView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     ForEach(Category.allCases, id: \.self) { category in
-                        let exercises = viewModel.exercises.filter { $0.category == category }
+                        let exercises = viewModel.exercises.filter {
+                            $0.category == category
+                        }
 
                         SectionCard {
                             VStack(alignment: .leading, spacing: 10) {
@@ -62,9 +64,16 @@ struct ExerciseLibraryView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("exerciseLibrary")
             .sheet(item: $editingCategory) { category in
+                let exercises = viewModel.exercises.filter {
+                    $0.category == category
+                }
                 ExerciseSheet(
+                    viewModel: viewModel,
                     category: category,
-                    exercises: $viewModel.exercises,
+                    exercises: Binding<[Exercise]>(
+                        get: { exercises },
+                        set: { _ in }
+                    ),
                     onClose: { editingCategory = nil }
                 )
             }
@@ -72,11 +81,10 @@ struct ExerciseLibraryView: View {
     }
 }
 
-
 // MARK: - Exercise Row
 private struct ExerciseRow: View {
     @Environment(\.colorScheme) var colorScheme
-   var exerciseName: Binding<String>
+    var exerciseName: Binding<String>
 
     var body: some View {
         HStack {
@@ -92,17 +100,12 @@ private struct ExerciseRow: View {
 
 // MARK: - Category Exercise Sheet
 struct ExerciseSheet: View {
+    var viewModel: AppViewModel
     var category: Category
     @Binding var exercises: [Exercise]  // full exercise list
     var onClose: () -> Void
 
     @State private var newExerciseName: String = ""
-
-    /// Indices of all exercises that belong to `category`
-    private var categoryExerciseIndices: [Int] {
-        exercises.enumerated()
-            .compactMap { index, ex in ex.category == category && !ex.isDefault ? index : nil }
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -138,22 +141,30 @@ struct ExerciseSheet: View {
             Divider()
 
             // List of exercises
-            let defaultExercise = exercises.filter {$0.isDefault && $0.category == category}
+            let defaultEx = exercises.filter {
+                $0.isDefault
+            }
+            let nonDefaultEx = exercises.filter {
+                !$0.isDefault
+            }
             List {
-                ForEach(defaultExercise, id: \.self){ ex in
+                ForEach(defaultEx, id: \.self) { ex in
                     HStack {
                         Text(ex.name.capitalized)
                             .textFieldStyle(.plain)
                         Spacer()
                     }
                 }
-                ForEach(categoryExerciseIndices, id: \.self) { idx in
+                ForEach(nonDefaultEx, id: \.self) { ex in
                     HStack {
-                        TextField("exerciseName", text: bindingForExercise(at: idx))
-                            .textFieldStyle(.plain)
+                        TextField(
+                            "exerciseName",
+                            text: bindingForExercise(ex)
+                        )
+                        .textFieldStyle(.plain)
                         Spacer()
                         Button(role: .destructive) {
-                            deleteExercise(at: idx)
+                            exercises.removeAll { $0.id == ex.id }
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -171,25 +182,25 @@ struct ExerciseSheet: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(newExerciseName.isEmpty ? .gray : .blue)
+                            .foregroundColor(
+                                newExerciseName.isEmpty ? .gray : .blue
+                            )
                     }
                     .disabled(newExerciseName.isEmpty)
                 }
             }
             .listStyle(.insetGrouped)
         }
-        .presentationDetents([.medium, .large]) // nice sheet sizes
+        .presentationDetents([.medium, .large])  // nice sheet sizes
     }
 
     // MARK: - Helpers
 
-    private func bindingForExercise(at idx: Int) -> Binding<String> {
+    private func bindingForExercise(_ ex: Exercise) -> Binding<String> {
         Binding<String>(
-            get: { exercises[idx].name },
+            get: { ex.name },
             set: { newValue in
-                var ex = exercises[idx]
                 ex.name = newValue
-                exercises[idx] = ex
             }
         )
     }
@@ -200,21 +211,26 @@ struct ExerciseSheet: View {
             category: category
         )
         exercises.append(newExercise)
+        viewModel.addExercise(newExercise)
         newExerciseName = ""
     }
 
     private func deleteExercise(at idx: Int) {
         exercises.remove(at: idx)
+        viewModel.deleteExercise(exercises[idx])
     }
 
     private func deleteExerciseAtOffsets(_ offsets: IndexSet) {
-        let idsToDelete = offsets.map { categoryExerciseIndices[$0] }
-        for idx in idsToDelete.sorted(by: >) {
+        for idx in offsets.sorted(by: >) {
             exercises.remove(at: idx)
+            viewModel.deleteExercise(exercises[idx])
         }
     }
 }
 
 #Preview {
-    ExerciseLibraryView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    ExerciseLibraryView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

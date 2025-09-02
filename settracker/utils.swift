@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SwiftData
 
 
 func groupTrainingsByWeek(_ trainings: [Training]) -> [TrainingWeekGroup] {

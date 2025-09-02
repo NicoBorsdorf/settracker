@@ -28,19 +28,11 @@ struct AccountView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle(Text("account"))
-            .onAppear {
-                if let stat = viewModel.statistics?.lastComputed {
-                    lastSync = stat
-                }
-            }
         }
         .preferredColorScheme(colorScheme(for: viewModel.settings.theme))
         .tint(.accentColor)
-        .onChange(of: viewModel.settings.theme) { _, _ in
-            Task { await persistSettings() }
-        }
         .alert(
-            "Sync Error",
+            AppError.networkError.errorDescription ?? "Sync error",
             isPresented: Binding(
                 get: { syncError != nil },
                 set: { if !$0 { syncError = nil } }
@@ -105,7 +97,7 @@ struct AccountView: View {
                 HStack {
                     Spacer()
                     Button {
-                        Task { await syncNow() }
+                        //Task { await syncNow() }
                     } label: {
                         Label("syncNow", systemImage: "arrow.clockwise")
                     }
@@ -149,31 +141,6 @@ struct AccountView: View {
         }
     }
 
-    // MARK: - Actions
-
-    private func syncNow() async {
-        isSyncing = true
-        syncError = nil
-        defer { isSyncing = false }
-
-        do {
-            try await viewModel.persist()
-            lastSync = Date()
-        } catch {
-            syncError = error.localizedDescription
-        }
-    }
-
-    private func persistSettings() async {
-        do {
-            try await viewModel.persist()
-            lastSync = Date()
-        } catch {
-            print("Failed to persist settings: \(error)")
-            syncError = error.localizedDescription
-        }
-    }
-
     // MARK: - Helpers
 
     private func colorScheme(for theme: AppTheme) -> ColorScheme? {
@@ -195,5 +162,8 @@ struct AccountView: View {
 }
 
 #Preview {
-    AccountView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    AccountView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

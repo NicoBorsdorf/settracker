@@ -4,7 +4,7 @@
 //
 //  Created by Nico Borsdorf on 28.07.25.
 //
-import SwiftData
+
 import SwiftUI
 
 struct HomeView: View {
@@ -73,6 +73,8 @@ struct HomeView: View {
 
     private func tagStyle(for type: TrainingType) -> (Color, String) {
         switch type {
+        case .none:
+            return (.clear, "")
         case .strength:
             return (.red, "strength")
         case .cardio:
@@ -84,5 +86,8 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    HomeView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

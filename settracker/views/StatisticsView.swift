@@ -147,5 +147,8 @@ struct StatisticsView: View {
 }
 
 #Preview {
-    StatisticsView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    StatisticsView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

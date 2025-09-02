@@ -5,7 +5,6 @@
 //  Created by Nico Borsdorf on 28.07.25.
 //
 
-import SwiftData
 import SwiftUI
 
 struct TrainingView: View {
@@ -13,30 +12,32 @@ struct TrainingView: View {
     @Environment(\.dismiss) private var dismiss
 
     // UI state
-    private var trainingId: String?
-    @State private var selectedType: TrainingType?
-    @State private var trainingExercises: [TrainingExercise] = []
-    @State private var trainingDate: Date = Date()
-    @State private var trainingDuration: Int = 0
+    @Binding var training: Training?
     @State private var showPrevPicker = false
-    @State private var selectedPrevTrainingId: String?
+    @State private var selectedPrevTrainingId: Int?
     @State private var showSetSheet = false
     @State private var editorExercise: TrainingExercise?  // for editing an existing exercise
 
     // MARK: - Init
     init(training: Training? = nil) {
-        if let t = training {
-            trainingId = t.id
-            _selectedType = State(initialValue: t.type)
-            _trainingDate = State(initialValue: t.date)
-            _trainingExercises = State(initialValue: t.exercises)
-            _trainingDuration = State(initialValue: t.duration)
-        }
+        // Initialise the backing storage of the binding with a constant
+        _training = Binding.constant(
+            training
+                ?? .init(
+                    date: Date(),
+                    duration: 0,
+                    type: .none,
+                    exercises: []
+                )
+        )
     }
 
     // MARK: - Body
     var body: some View {
-        NavigationStack {
+        guard let training else {
+            fatalError("TrainingView initialized without a training")
+        }
+        return NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     headerCard
@@ -47,7 +48,7 @@ struct TrainingView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle(
-                "Training - \(trainingDate.formatted(date: .numeric, time: .omitted))"
+                "Training - \(training.date.formatted(date: .numeric, time: .omitted))"
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -70,12 +71,12 @@ struct TrainingView: View {
                         trainingExercise: exercise,
                         onCancel: { editorExercise = nil },
                         onSave: { updated in
-                            if let idx = trainingExercises.firstIndex(where: {
+                            if let idx = training.exercises.firstIndex(where: {
                                 $0.id == updated.id
                             }) {
-                                trainingExercises[idx] = updated
+                                training.exercises[idx] = updated
                             } else {
-                                trainingExercises.append(updated)
+                                training.exercises.append(updated)
                             }
                             editorExercise = nil
                         }
@@ -88,7 +89,7 @@ struct TrainingView: View {
                     trainingExercise: nil,
                     onCancel: { showSetSheet = false },
                     onSave: { newEx in
-                        trainingExercises.append(newEx)
+                        training.exercises.append(newEx)
                         showSetSheet = false
                     }
                 )
@@ -97,7 +98,8 @@ struct TrainingView: View {
     }
 
     private var canSave: Bool {
-        selectedType != nil && !trainingExercises.isEmpty
+        guard let training else { return false }
+        return training.type != TrainingType.none && !training.exercises.isEmpty
     }
 
     // MARK: - Cards
@@ -109,18 +111,19 @@ struct TrainingView: View {
                     Text("trainingType")
                         .font(.headline)
                     Spacer()
-                    Picker("category", selection: $selectedType) {
-                        Text("selectType").tag(nil as TrainingType?)
+                    Picker(
+                        "category",
+                        selection: Binding<TrainingType>(
+                            get: { training?.type ?? .none },
+                            set: { newValue in training?.type = newValue }
+                        )
+                    ) {
+                        Text("selectType").tag(TrainingType.none)
                         ForEach(TrainingType.allCases, id: \.rawValue) { t in
                             Text(t.rawValue.capitalized).tag(Optional(t))
                         }
                     }
                     .pickerStyle(.menu)
-                    .onChange(of: selectedType) { _, newValue in
-                        if let t = newValue {
-                            selectedType = t
-                        }
-                    }
                 }
                 HStack {
                     Image(systemName: "calendar")
@@ -128,8 +131,8 @@ struct TrainingView: View {
                     DatePicker(
                         "",
                         selection: Binding(
-                            get: { trainingDate },
-                            set: { trainingDate = $0 }
+                            get: { training?.date ?? Date() },
+                            set: { training?.date = $0 }
                         ),
                         displayedComponents: [.date]
                     )
@@ -178,7 +181,7 @@ struct TrainingView: View {
                                 "prevTrainings",
                                 selection: $selectedPrevTrainingId
                             ) {
-                                Text("selectPrevTraining").tag(String?.none)
+                                Text("selectPrevTraining").tag(nil as Int?)
                                 ForEach(
                                     viewModel.trainings
                                         .filter { !$0.exercises.isEmpty }
@@ -191,7 +194,7 @@ struct TrainingView: View {
                                                 time: .omitted
                                             )
                                     )
-                                    .tag(String?(t.id))
+                                    .tag(t.id.hashValue)
                                 }
                             }
                             .pickerStyle(.inline)
@@ -228,7 +231,7 @@ struct TrainingView: View {
                         String(
                             format: NSLocalizedString(
                                 "exercises_nr",
-                                comment: "\(trainingExercises.count)"
+                                comment: "\(training?.exercises.count ?? 0)"
                             )
                         )
                     )
@@ -243,18 +246,18 @@ struct TrainingView: View {
                     .accessibilityIdentifier("addExerciseButton")
                 }
 
-                if trainingExercises.isEmpty {
+                if training?.exercises.isEmpty == true {
                     Text("noExercises")
                         .foregroundColor(.gray)
                         .padding(.bottom, 8)
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(trainingExercises) { ex in
+                        ForEach(training?.exercises ?? []) { ex in
                             ExerciseRowView(
                                 trainingExercise: ex,
                                 onEdit: { editorExercise = $0 },
                                 onDelete: {
-                                    trainingExercises.removeAll {
+                                    training?.exercises.removeAll {
                                         $0.id == ex.id
                                     }
                                 }
@@ -269,32 +272,22 @@ struct TrainingView: View {
     // MARK: - Actions
 
     private func saveTraining() {
-        guard let selectedType else { return }
+        guard let training else { return }
+        let exists = training.persistentBackingData.persistentModelID != nil
 
-        if let idx = viewModel.trainings.firstIndex(where: {
-            $0.id == trainingId
-        }) {
-            var existing = viewModel.trainings[idx]
-            existing.exercises = trainingExercises
-            existing.date = trainingDate
-            existing.duration = trainingDuration
-            existing.type = selectedType
-            viewModel.trainings[idx] = existing
+        if !exists {
+            viewModel.addTraining(training)
         } else {
-            let newTraining = Training(
-                date: trainingDate,
-                duration: trainingDuration,
-                type: selectedType,
-                exercises: trainingExercises
-            )
-            viewModel.trainings.append(newTraining)
+            viewModel.updateTraining(training)
         }
         dismiss()
     }
 
-    private func copyFromTraining(_ trainingId: String) {
+    private func copyFromTraining(_ trainingId: Int) {
         guard
-            let src = viewModel.trainings.first(where: { $0.id == trainingId })
+            let src = viewModel.trainings.first(where: {
+                $0.id.hashValue == trainingId
+            })
         else { return }
         // Deep copy: duplicate exercises; if your TrainingExercise is a struct, this copies by value.
         // If you rely on unique IDs per exercise, you may want to generate new IDs here.
@@ -302,11 +295,11 @@ struct TrainingView: View {
             TrainingExercise(
                 exercise: ex.exercise,
                 category: ex.category,
-                duration: ex.category == .cardio ? ex.duration : ex.duration,
+                duration: ex.duration,
                 trainingSets: ex.trainingSets  // value-copied if struct
             )
         }
-        trainingExercises.append(contentsOf: copied)
+        training?.exercises.append(contentsOf: copied)
     }
 }
 
@@ -384,5 +377,8 @@ extension Double {
 }
 
 #Preview {
-    TrainingView().environmentObject(AppViewModel())
+    @Previewable @Environment(\.modelContext) var context
+    TrainingView().environmentObject(
+        AppViewModel(context: context)
+    )
 }

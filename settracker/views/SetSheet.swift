@@ -8,7 +8,6 @@
 //  - Add, edit, delete sets
 //
 
-import SwiftData
 import SwiftUI
 
 struct SetSheet: View {
@@ -371,7 +370,7 @@ struct SetSheet: View {
                 // Delete
                 Button(role: .destructive) {
                     withAnimation(.easeInOut) {
-                        sets.removeAll(where: { $0.id == binding.id })
+                        sets.removeAll(where: { $0.setId == binding.setId.wrappedValue })
                     }
                 } label: {
                     Image(systemName: "trash")
@@ -392,14 +391,15 @@ struct SetSheet: View {
 
     // MARK: - Actions
     private func addSet() {
-        sets.append(TrainingSet(id: sets.count, reps: 10, weight: 0))
+        sets.append(TrainingSet(setId: sets.count, reps: 10, weight: 0))
     }
 
     private func saveAndClose() {
         guard let selectedExercise, let category else { return }
-        var trEx = TrainingExercise(
+        let trEx = TrainingExercise(
             exercise: selectedExercise.name,
             category: category,
+            duration: stopwatchSeconds,
             trainingSets: sets
         )
 
@@ -432,14 +432,16 @@ struct SetSheet: View {
 }
 
 #Preview {
+    @Previewable @Environment(\.modelContext) var context
+    let viewModel = AppViewModel(context: context)
     SetSheet(
-        appExercises: AppViewModel().exercises,
+        appExercises: viewModel.exercises,
         trainingExercise: TrainingExercise(
-            exercise: AppViewModel().exercises.first?.name
+            exercise: viewModel.exercises.first?.name
                 ?? "Bench Press",
             category: .push,
             duration: 0,
-            trainingSets: [TrainingSet(id: 0, reps: 10, weight: 40)]
+            trainingSets: [TrainingSet(setId: 0, reps: 10, weight: 40)]
         ),
         onCancel: {},
         onSave: { _ in }

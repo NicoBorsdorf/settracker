@@ -29,23 +29,6 @@
 		DFB74A8B2E1592BD006A9404 /* settrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = settrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DFFE7A722E43D46300D05157 /* Exceptions for "settrackerUITests" folder in "settrackerTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				NewTrainingViewTests.swift,
-			);
-			target = DFB74A802E1592BD006A9404 /* settrackerTests */;
-		};
-		DFFE7A732E43D46300D05157 /* Exceptions for "settrackerUITests" folder in "settrackerUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				NewTrainingViewTests.swift,
-			);
-			target = DFB74A8A2E1592BD006A9404 /* settrackerUITests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DFB74A702E1592BC006A9404 /* settracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -59,10 +42,6 @@
 		};
 		DFB74A8E2E1592BD006A9404 /* settrackerUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DFFE7A722E43D46300D05157 /* Exceptions for "settrackerUITests" folder in "settrackerTests" target */,
-				DFFE7A732E43D46300D05157 /* Exceptions for "settrackerUITests" folder in "settrackerUITests" target */,
-			);
 			path = settrackerUITests;
 			sourceTree = "<group>";
 		};
