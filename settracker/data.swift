@@ -8,12 +8,7 @@ actor AppDataStore {
     private let stateFileName = "state.bin"
 
     // Default app exercises (not persisted; only user-added are persisted)
-    static let defaultExercises: [Exercise] = [
-        Exercise(name: "Bench Press", category: .push, isDefault: true),
-        Exercise(name: "Squat", category: .legs, isDefault: true),
-        Exercise(name: "Deadlift", category: .pull, isDefault: true),
-    ]
-
+    
     // MARK: Paths
     private func iCloudDocumentsURL() -> URL? {
         fm.url(forUbiquityContainerIdentifier: nil)?
@@ -62,5 +57,48 @@ actor AppDataStore {
         let folder = try ensureAppFolder()
         return folder.appendingPathComponent(stateFileName, isDirectory: false)
     }
+}
 
+enum MuscleGroup: String, CaseIterable, Identifiable, Codable {
+    // Neck / traps
+    case upperTraps = "Upper Traps"
+    case midLowerTraps = "Mid/Lower Traps"
+    case neck = "Neck"
+
+    // Shoulders
+    case frontDelts = "Front Delts"
+    case sideDelts = "Side Delts"
+    case rearDelts = "Rear Delts"
+
+    // Chest
+    case upperChest = "Upper Chest"
+    case midLowerChest = "Mid/Lower Chest"
+
+    // Back (lats + upper back)
+    case lats = "Lats"
+    case upperBack = "Upper Back"  // rhomboids/teres/infraspinatus area
+
+    // Arms
+    case biceps = "Biceps"
+    case triceps = "Triceps"
+    case forearms = "Forearms"
+
+    // Core
+    case abs = "Abs"
+    case obliques = "Obliques"
+    case lowerBack = "Lower Back"
+
+    // Hips / glutes
+    case glutes = "Glutes"
+    case hipFlexors = "Hip Flexors"
+    case adductors = "Adductors"
+    case abductors = "Abductors"
+
+    // Legs
+    case quads = "Quads"
+    case hamstrings = "Hamstrings"
+    case calves = "Calves"
+    case tibialis = "Tibialis"
+
+    var id: String { rawValue }
 }

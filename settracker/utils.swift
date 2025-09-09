@@ -38,14 +38,3 @@ func formatWeekRange(_ start: Date) -> String {
     )
     return "\(String(localized: "week")) \(components.weekOfYear ?? 0) / \(components.yearForWeekOfYear ?? 0)"
 }
-
-func groupExercisesByCategory(_ exercises: [Exercise]) -> [(
-    category: Category, exercises: [Exercise]
-)] {
-    let categories = Category.allCases
-
-    return categories.map { category in
-        let filtered = exercises.filter { $0.category == category }
-        return (category: category, exercises: filtered)
-    }
-}

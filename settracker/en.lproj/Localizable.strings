@@ -11,10 +11,11 @@
 "theme" = "Theme";
 "light" = "Light";
 "dark" = "Dark";
-"language" = "Language";
-"appLanguage" = "App Language";
-"english" = "English";
-"german" = "German";
+"tracking" = "Tracking";
+"timeExercises" = "Track time in exercises";
+"timeTrainings" = "Track time in trainings";
+"timeExercisesInfo" = "Track the time spent on each exercise added to a training session.";
+"timeTrainingsInfo" = "Keep track of the total time spent on each training session.";
 "lastSynced" = "Last synced: %@";
 "notSynced" = "Not synced yet";
 "syncNow" = "Sync Now";
@@ -28,15 +29,6 @@
 "home" = "Home";
 "account" = "Account";
 
-
-// MARK: ExerciseView
-"exerciseLibrary" = "Exercise Library";
-"add" = "Add";
-"exerciseName" = "Exercise name";
-"exerciseSheetInfo" = "Here you can edit, add, and remove exercises for this category. All changes are saved automatically.";
-"noExercises" = "No exercises for this category.";
-
-
 // MARK: HomeView
 "trainingLog" = "Training Log";
 "newTraining" = "New training";
@@ -48,7 +40,7 @@
 // MARK: SetSheet
 "addEditSet" = "Add and edit your sets.";
 "exercise" = "Exercise";
-"selectExercise" = "Select exercise...";
+"selectCategory" = "Category...";
 "stopwatch" = "Stopwatch";
 "reset" = "Reset";
 "targetDuration" = "Target Duration";
@@ -59,12 +51,14 @@
 "noSets" = "No sets yet. Tap 'Add set'.";
 "reps" = "Reps";
 "deleteSet" = "Delete set";
-"infoText" = "Add or edit an exercise, track time, and configure sets. Changes are saved when you tap Save.";
+"infoText" = "Add or edit an exercise, track time, and configure sets.";
 
 
 // MARK: TrainingView
 "createWorkout" = "Create your workout.";
 "trainingType" = "Training Type";
+"strength" = "Strength";
+"cardio" = "Cardio";
 "selectType" = "Select type";
 "copyFromPrev" = "Copy from previous";
 "reusePrevTraining" = "Reuse a recent training as a template";
@@ -98,3 +92,92 @@
 "week" = "Week";
 "sets" = "Sets";
 "statistics" = "Statistics";
+
+
+// MARK: Muscle names
+"benchPress" = "Bench Press";
+"inclineBenchPress" = "Incline Bench Press";
+"declineBenchPress" = "Decline Bench Press";
+"pushUp" = "Push-Up";
+"widePushUp" = "Wide Push-Up";
+"diamondPushUp" = "Diamond Push-Up";
+"dumbbellBenchPress" = "Dumbbell Bench Press";
+"inclineDumbbellPress" = "Incline Dumbbell Press";
+"declineDumbbellPress" = "Decline Dumbbell Press";
+"machineChestPress" = "Machine Chest Press";
+"chestDip" = "Chest Dip";
+"pecDeck" = "Pec Deck";
+"cableFlyLowToHigh" = "Cable Fly Low to High";
+"cableFlyHighToLow" = "Cable Fly High to Low";
+"pushPress" = "Push Press";
+"overheadPress" = "Overhead Press";
+"seatedDumbbellShoulderPress" = "Seated Dumbbell Shoulder Press";
+"arnoldPress" = "Arnold Press";
+"lateralRaise" = "Lateral Raise";
+"cableLateralRaise" = "Cable Lateral Raise";
+"frontRaise" = "Front Raise";
+"uprightRow" = "Upright Row";
+"skullCrusher" = "Skull Crusher";
+"tricepsPushdown" = "Triceps Pushdown";
+"overheadTricepsExtension" = "Overhead Triceps Extension";
+"closeGripBenchPress" = "Close-Grip Bench Press";
+"benchDip" = "Bench Dip";
+"deadlift" = "Deadlift";
+"sumoDeadlift" = "Sumo Deadlift";
+"romanianDeadlift" = "Romanian Deadlift";
+"rackPull" = "Rack Pull";
+"barbellRow" = "Barbell Row";
+"pendlayRow" = "Pendlay Row";
+"dumbbellRow" = "Dumbbell Row";
+"seatedCableRow" = "Seated Cable Row";
+"chestSupportedRow" = "Chest-Supported Row";
+"latPulldown" = "Lat Pulldown";
+"pullUp" = "Pull-Up";
+"chinUp" = "Chin-Up";
+"neutralGripPullUp" = "Neutral-Grip Pull-Up";
+"straightArmPulldown" = "Straight-Arm Pulldown";
+"facePull" = "Face Pull";
+"rearDeltFly" = "Rear Delt Fly";
+"cableRearDeltFly" = "Cable Rear Delt Fly";
+"shrug" = "Shrug";
+"barbellCurl" = "Barbell Curl";
+"dumbbellCurl" = "Dumbbell Curl";
+"inclineDumbbellCurl" = "Incline Dumbbell Curl";
+"hammerCurl" = "Hammer Curl";
+"preacherCurl" = "Preacher Curl";
+"reverseCurl" = "Reverse Curl";
+"wristCurl" = "Wrist Curl";
+"reverseWristCurl" = "Reverse Wrist Curl";
+"squat" = "Squat";
+"frontSquat" = "Front Squat";
+"highBarSquat" = "High-Bar Squat";
+"lowBarSquat" = "Low-Bar Squat";
+"HackSquat" = "Hack Squat";
+"legPress" = "Leg Press";
+"walkingLunge" = "Walking Lunge";
+"reverseLunge" = "Reverse Lunge";
+"bulgarianSplitSquat" = "Bulgarian Split Squat";
+"stepUp" = "Step-Up";
+"legExtension" = "Leg Extension";
+"legCurlSeated" = "Seated Leg Curl";
+"legCurlLying" = "Lying Leg Curl";
+"goodMorning" = "Good Morning";
+"hipThrust" = "Hip Thrust";
+"gluteBridge" = "Glute Bridge";
+"abductorMachine" = "Abductor Machine";
+"adductorMachine" = "Adductor Machine";
+"calfRaiseStanding" = "Standing Calf Raise";
+"calfRaiseSeated" = "Seated Calf Raise";
+"tibialisRaise" = "Tibialis Raise";
+"plank" = "Plank";
+"crunch" = "Crunch";
+"hangingLegRaise" = "Hanging Leg Raise";
+"backExtension" = "Back Extension";
+"cycling" = "Cycling";
+"rowingMachine" = "Rowing (Machine)";
+"elliptical" = "Elliptical";
+"stairClimber" = "Stair Climber";
+"treadmill" = "Treadmill";
+"jumpRope" = "Jump Rope";
+"burpees" = "Burpees";
+"boxing" = "Boxing";

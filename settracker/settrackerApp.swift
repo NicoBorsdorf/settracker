@@ -17,7 +17,6 @@ struct settrackerApp: App {
         do {
             container = try ModelContainer(
                 for:
-                    Exercise.self,
                 Training.self,
                 TrainingSet.self,
                 TrainingExercise.self,

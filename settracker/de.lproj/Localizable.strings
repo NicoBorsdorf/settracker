@@ -11,10 +11,11 @@
 "theme" = "Thema";
 "light" = "Hell";
 "dark" = "Dunkel";
-"language" = "Sprache";
-"appLanguage" = "App-Sprache";
-"english" = "Englisch";
-"german" = "Deutsch";
+"tracking" = "Verfolgung";
+"timeExercises" = "Übungszeit erfassen";
+"timeTrainings" = "Trainingszeit erfassen";
+"timeExercisesInfo" = "Erfasse die Zeit, die Du bei jeder Trainingsübung gebraucht hast.";
+"timeTrainingsInfo" = "Erfasse die Gesamtzeit eines Trainings.";
 "lastSynced" = "Zuletzt synchronisiert";
 "notSynced" = "Noch nicht synchronisiert";
 "syncNow" = "Jetzt synchronisieren";
@@ -29,14 +30,6 @@
 "account" = "Konto";
 
 
-// MARK: ExerciseView
-"exerciseLibrary" = "Übungsbibliothek";
-"add" = "Hinzufügen";
-"exerciseName" = "Übungsname";
-"exerciseSheetInfo" = "Hier können Übungen für diese Kategorie bearbeitet, hinzufügt und entfernt werden. Alle Änderungen werden automatisch gespeichert.";
-"noExercises" = "Keine Übungen für diese Kategorie.";
-
-
 // MARK: HomeView
 "trainingLog" = "Trainingsprotokoll";
 "newTraining" = "Neues Training";
@@ -48,7 +41,7 @@
 // MARK: SetSheet
 "addEditSet" = "Füge Sätze hinzu und bearbeite sie.";
 "exercise" = "Übung";
-"selectExercise" = "Übung auswählen...";
+"selectCategory" = "Kategorie...";
 "stopwatch" = "Stoppuhr";
 "reset" = "Zurücksetzen";
 "targetDuration" = "Zieldauer";
@@ -59,13 +52,15 @@
 "noSets" = "Noch keine Sätze. Tippe auf 'Satz hinzufügen'.";
 "reps" = "Wdh.";
 "deleteSet" = "Satz löschen";
-"infoText" = "Übung hinzufügen oder bearbeiten, Zeit messen und Sätze konfigurieren. Änderungen werden gespeichert, wenn du auf „Speichern“ tippst.";
+"infoText" = "Übung hinzufügen oder bearbeiten, Zeit messen und Sätze konfigurieren.";
 
 
 // MARK: TrainingView
 "createWorkout" = "Erstelle dein Workout.";
 "trainingType" = "Trainingstyp";
 "selectType" = "Typ auswählen";
+"strength" = "Stärke";
+"cardio" = "Kardio";
 "copyFromPrev" = "Von vorherigem kopieren";
 "reusePrevTraining" = "Verwende ein vorheriges Training als Vorlage";
 "togglePrevTrainings" = "Vorherige Trainings umschalten";
@@ -98,3 +93,92 @@
 "week" = "Woche";
 "sets" = "Sätze";
 "statistics" = "Statistik";
+
+
+// MARK: Muscle names
+"benchPress" = "Bankdrücken";
+"inclineBenchPress" = "Schrägbankdrücken";
+"declineBenchPress" = "Negativbankdrücken";
+"pushUp" = "Liegestütz";
+"widePushUp" = "Breiter Liegestütz";
+"diamondPushUp" = "Diamant-Liegestütz";
+"dumbbellBenchPress" = "Kurzhantel-Bankdrücken";
+"inclineDumbbellPress" = "Kurzhantel-Schrägbankdrücken";
+"declineDumbbellPress" = "Kurzhantel-Negativbankdrücken";
+"machineChestPress" = "Brustpresse Maschine";
+"chestDip" = "Dips (Brust)";
+"pecDeck" = "Butterfly (Pec Deck)";
+"cableFlyLowToHigh" = "Kabelzüge unten nach oben";
+"cableFlyHighToLow" = "Kabelzüge oben nach unten";
+"pushPress" = "Push Press";
+"overheadPress" = "Schulterdrücken stehend";
+"seatedDumbbellShoulderPress" = "Kurzhantel-Schulterdrücken sitzend";
+"arnoldPress" = "Arnold-Press";
+"lateralRaise" = "Seitheben";
+"cableLateralRaise" = "Kabel-Seitheben";
+"frontRaise" = "Frontheben";
+"uprightRow" = "Aufrechtes Rudern";
+"skullCrusher" = "French Press (Skull Crusher)";
+"tricepsPushdown" = "Trizepsdrücken am Kabel";
+"overheadTricepsExtension" = "Überkopf-Trizepsdrücken";
+"closeGripBenchPress" = "Enges Bankdrücken";
+"benchDip" = "Bank-Dips";
+"deadlift" = "Kreuzheben";
+"sumoDeadlift" = "Sumo-Kreuzheben";
+"romanianDeadlift" = "Rumänisches Kreuzheben";
+"rackPull" = "Rack Pull";
+"barbellRow" = "Langhantelrudern";
+"pendlayRow" = "Pendlay Rudern";
+"dumbbellRow" = "Kurzhantelrudern";
+"seatedCableRow" = "Rudern am Kabel sitzend";
+"chestSupportedRow" = "Brustgestütztes Rudern";
+"latPulldown" = "Latziehen";
+"pullUp" = "Klimmzug";
+"chinUp" = "Klimmzug (Kammgriff)";
+"neutralGripPullUp" = "Klimmzug neutraler Griff";
+"straightArmPulldown" = "Gerades Armziehen";
+"facePull" = "Face Pull";
+"rearDeltFly" = "Reverse Fly";
+"cableRearDeltFly" = "Kabel-Reverse Fly";
+"shrug" = "Shrugs";
+"barbellCurl" = "Langhantelcurls";
+"dumbbellCurl" = "Kurzhantelcurls";
+"inclineDumbbellCurl" = "Schrägbank-Kurzhantelcurls";
+"hammerCurl" = "Hammer-Curls";
+"preacherCurl" = "Scott-Curls";
+"reverseCurl" = "Reverse Curls";
+"wristCurl" = "Handgelenkcurls";
+"reverseWristCurl" = "Reverse Handgelenkcurls";
+"squat" = "Kniebeuge";
+"frontSquat" = "Frontkniebeuge";
+"highBarSquat" = "High-Bar Kniebeuge";
+"lowBarSquat" = "Low-Bar Kniebeuge";
+"HackSquat" = "Hackenschmidt";
+"legPress" = "Beinpresse";
+"walkingLunge" = "Ausfallschritte gehend";
+"reverseLunge" = "Ausfallschritte rückwärts";
+"bulgarianSplitSquat" = "Bulgarian Split Squat";
+"stepUp" = "Step-Up";
+"legExtension" = "Beinstrecker";
+"legCurlSeated" = "Beinbeuger sitzend";
+"legCurlLying" = "Beinbeuger liegend";
+"goodMorning" = "Good Morning";
+"hipThrust" = "Hip Thrust";
+"gluteBridge" = "Glute Bridge";
+"abductorMachine" = "Abduktorenmaschine";
+"adductorMachine" = "Adduktorenmaschine";
+"calfRaiseStanding" = "Wadenheben stehend";
+"calfRaiseSeated" = "Wadenheben sitzend";
+"tibialisRaise" = "Tibialis Raise";
+"plank" = "Plank";
+"crunch" = "Crunch";
+"hangingLegRaise" = "Hanging Leg Raise";
+"backExtension" = "Rückenstrecker";
+"cycling" = "Fahrad";
+"rowingMachine" = "Rudern (Machine)";
+"elliptical" = "Crosstrainer";
+"stairClimber" = "Treppensteiger";
+"treadmill" = "Laufband";
+"jumpRope" = "Seilspringen";
+"burpees" = "Burpees";
+"boxing" = "Boxen";

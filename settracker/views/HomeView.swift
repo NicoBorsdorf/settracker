@@ -18,7 +18,9 @@ struct HomeView: View {
                 .background(Color(.systemGroupedBackground))
                 .navigationTitle("trainingLog")
                 .toolbar{
-                    NavigationLink(destination: TrainingView(), label: {
+                    NavigationLink(destination: TrainingView(
+                        training: Training()
+                    ), label: {
                         Label("", systemImage: "plus")
                     })
                 }
@@ -79,8 +81,6 @@ struct HomeView: View {
             return (.red, "strength")
         case .cardio:
             return (.green, "cardio")
-        case .mobility:
-            return (.orange, "mobility")
         }
     }
 }

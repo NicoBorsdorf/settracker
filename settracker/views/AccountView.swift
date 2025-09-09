@@ -20,6 +20,7 @@ struct AccountView: View {
                 VStack(spacing: 16) {
                     appearanceCard
                     icloudCard
+                    trackingCard
                     aboutCard
                 }
                 .padding(.horizontal)
@@ -103,6 +104,35 @@ struct AccountView: View {
                     }
                     .buttonStyle(.borderedProminent)
                 }
+            }
+        }
+    }
+    
+    private var trackingCard: some View {
+        SectionCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("tracking")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                
+                VStack(spacing: 4){
+                    Toggle("timeExercises", isOn: $viewModel.settings.timeExercises)
+                        .accessibilityLabel("timeExercises")
+                    HStack{
+                        Text("timeExercisesInfo").font(.caption2).foregroundStyle(.gray)
+                        Spacer()
+                    }
+                }
+               
+                VStack(spacing: 4){
+                    Toggle("timeTrainings", isOn: $viewModel.settings.timeTrainings)
+                        .accessibilityLabel("timeTrainings")
+                    HStack{
+                        Text("timeTrainingsInfo").font(.caption2).foregroundStyle(.gray)
+                        Spacer()
+                    }
+                }
+
             }
         }
     }

@@ -11,25 +11,13 @@ import SwiftUI
 
 enum Category: String, CaseIterable, Codable, Identifiable {
     case push, pull, legs, cardio
+    case none = ""
     var id: String { rawValue }
 }
 
 enum TrainingType: String, CaseIterable, Codable {
-    case strength, mobility, cardio
+    case strength, cardio
     case none = ""
-}
-
-@Model
-final class Exercise {
-    @Attribute(.unique) var name: String
-    var category: Category
-    var isDefault: Bool = false
-
-    init(name: String, category: Category, isDefault: Bool = false) {
-        self.name = name
-        self.category = category
-        self.isDefault = isDefault
-    }
 }
 
 @Model
@@ -37,13 +25,19 @@ final class TrainingExercise {
     var exercise: String
     var category: Category
     var duration: Int = 0  // in seconds
-    var trainingSets: [TrainingSet] = []
+    var training: Training?
+
+    @Relationship(
+        deleteRule: .cascade,
+        inverse: \TrainingSet.trainingExercise
+    )
+    var trainingSets = [TrainingSet]()
 
     init(
-        exercise: String,
-        category: Category,
-        duration: Int,
-        trainingSets: [TrainingSet]
+        exercise: String = "",
+        category: Category = .none,
+        duration: Int = 0,
+        trainingSets: [TrainingSet] = [],
     ) {
         self.exercise = exercise
         self.category = category
@@ -53,10 +47,11 @@ final class TrainingExercise {
 }
 
 @Model
-final class TrainingSet {
+final class TrainingSet: Identifiable {
     var setId: Int
     var reps: Int
     var weight: Double
+    var trainingExercise: TrainingExercise?
 
     init(setId: Int, reps: Int, weight: Double) {
         self.setId = setId
@@ -70,13 +65,18 @@ final class Training {
     var date: Date
     var duration: Int = 0  // in seconds
     var type: TrainingType
-    var exercises: [TrainingExercise]
+
+    @Relationship(
+        deleteRule: .cascade,
+        inverse: \TrainingExercise.training
+    )
+    var exercises = [TrainingExercise]()
 
     init(
-        date: Date,
-        duration: Int,
-        type: TrainingType,
-        exercises: [TrainingExercise]
+        date: Date = Date(),
+        duration: Int = 0,
+        type: TrainingType = .none,
+        exercises: [TrainingExercise] = []
     ) {
         self.date = date
         self.duration = duration
@@ -108,10 +108,19 @@ enum AppTheme: String, Codable {
 final class AppSettings {
     var isCloudEnabled: Bool
     var theme: AppTheme
+    var timeExercises: Bool
+    var timeTrainings: Bool
 
-    init(isCloudEnabled: Bool = false, theme: AppTheme = .system) {
+    init(
+        isCloudEnabled: Bool = false,
+        theme: AppTheme = .system,
+        timeExercises: Bool = true,
+        timeTrainings: Bool = true
+    ) {
         self.isCloudEnabled = isCloudEnabled
         self.theme = theme
+        self.timeExercises = timeExercises
+        self.timeTrainings = timeTrainings
     }
 }
 
@@ -119,18 +128,15 @@ final class AppStateFile {
     // Schema version for future migrations
     var schemaVersion: Int = 1
     var settings: AppSettings
-    var userExercises: [Exercise]  // only user-created (isDefault == false)
     var trainings: [Training]
     var statistics: StatisticsCache?
 
     init(
         settings: AppSettings,
-        userExercises: [Exercise],
         trainings: [Training],
         statistics: StatisticsCache? = nil
     ) {
         self.settings = settings
-        self.userExercises = userExercises
         self.trainings = trainings
         self.statistics = statistics
     }
@@ -142,45 +148,21 @@ final class AppViewModel: ObservableObject {
     private let context: ModelContext
 
     // Exposed data for views
-    @Published private(set) var exercises: [Exercise] = []
     @Published private(set) var trainings: [Training] = []
-    @Published var settings: AppSettings
+    @Published var settings: AppSettings = AppSettings()
 
     init(context: ModelContext) {
         self.context = context
-        do {
-            if let s = try context.fetch(FetchDescriptor<AppSettings>()).first {
-                self.settings = s
-            } else {
-                throw AppError.newError("Failed to load settings")
-            }
-        } catch {
-            print("Failed to load AppSettings. Initializing with defaults.")
-            self.settings = AppSettings()
+        Task {
+            await loadInitialData()
         }
-
     }
 
     // MARK: Bootstrap / Queries
 
     func loadInitialData() async {
-        await loadExercises()
         await loadTrainings()
-    }
-
-    func loadExercises(category: Category? = nil) async {
-        var descriptor = FetchDescriptor<Exercise>(
-            sortBy: [SortDescriptor(\.name, order: .forward)]
-        )
-        if let cat = category {
-            descriptor.predicate = #Predicate<Exercise> { $0.category == cat }
-        }
-        do {
-            exercises = try context.fetch(descriptor)
-        } catch {
-            print("Fetch exercises failed: \(error)")
-            exercises = []
-        }
+        await loadSettings()
     }
 
     func loadTrainings(from start: Date? = nil, to end: Date? = nil) async {
@@ -201,35 +183,22 @@ final class AppViewModel: ObservableObject {
         }
     }
 
+    func loadSettings() async {
+        do {
+            if let s = try context.fetch(FetchDescriptor<AppSettings>()).first {
+                self.settings = s
+            }
+        } catch {
+            print("Failed to load AppSettings. Initializing with defaults.")
+            self.settings = AppSettings()
+        }
+    }
+
     // MARK: Mutations (insert/update/delete)
 
-    func addExercise(_ ex: Exercise) {
-        context.insert(ex)
-        saveContextAndRefreshExercises()
-    }
-
-    func renameExercise(_ exercise: Exercise, to newName: String) {
-        exercise.name = newName
-        saveContextAndRefreshExercises()
-    }
-
-    func deleteExercise(_ exercise: Exercise) {
-        context.delete(exercise)
-        saveContextAndRefreshExercises()
-    }
-
+    // MARK: Training Handlers
     func addTraining(_ training: Training) {
         context.insert(training)
-        saveContextAndRefreshTrainings()
-    }
-
-    func updateTraining(
-        _ training: Training,
-        type: TrainingType? = nil,
-        date: Date? = nil
-    ) {
-        if let type = type { training.type = type }
-        if let date = date { training.date = date }
         saveContextAndRefreshTrainings()
     }
 
@@ -240,21 +209,18 @@ final class AppViewModel: ObservableObject {
 
     // MARK: Save helpers
 
-    private func saveContextAndRefreshExercises() {
-        do {
-            try context.save()
-        } catch {
-            print("Save error (exercises):", error)
+    func saveContext() {
+        Task {
+            do {
+                try context.save()
+            } catch {
+                print("Save error:", error)
+            }
         }
-        Task { await loadExercises() }
     }
 
     private func saveContextAndRefreshTrainings() {
-        do {
-            try context.save()
-        } catch {
-            print("Save error (trainings):", error)
-        }
+        saveContext()
         Task { await loadTrainings() }
     }
 

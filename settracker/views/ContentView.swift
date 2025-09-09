@@ -6,7 +6,7 @@ struct ContentView: View {
     @StateObject var router = AppRouter()
 
     private var baseTabs: [AppTab] {
-        [.home, .exercises, .statistics, .account]
+        [.home, .statistics, .account]
     }
 
     var body: some View {

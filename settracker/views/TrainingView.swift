@@ -5,101 +5,66 @@
 //  Created by Nico Borsdorf on 28.07.25.
 //
 
+import SwiftData
 import SwiftUI
 
 struct TrainingView: View {
+    @Environment(\.modelContext) var modelContext
     @EnvironmentObject var viewModel: AppViewModel
     @Environment(\.dismiss) private var dismiss
 
     // UI state
-    @Binding var training: Training?
+    @Bindable var training: Training
     @State private var showPrevPicker = false
     @State private var selectedPrevTrainingId: Int?
-    @State private var showSetSheet = false
     @State private var editorExercise: TrainingExercise?  // for editing an existing exercise
-
-    // MARK: - Init
-    init(training: Training? = nil) {
-        // Initialise the backing storage of the binding with a constant
-        _training = Binding.constant(
-            training
-                ?? .init(
-                    date: Date(),
-                    duration: 0,
-                    type: .none,
-                    exercises: []
-                )
-        )
-    }
 
     // MARK: - Body
     var body: some View {
-        guard let training else {
-            fatalError("TrainingView initialized without a training")
-        }
-        return NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    headerCard
-                    copyPreviousCard
-                    exercisesCard
-                }
-                .padding()
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(
-                "Training - \(training.date.formatted(date: .numeric, time: .omitted))"
-            )
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        saveTraining()
-                    } label: {
-                        Image(systemName: "square.and.arrow.down")
-                    }
-                    .disabled(!canSave)
-                    .opacity(canSave ? 1 : 0.5)
-                    .accessibilityLabel(Text("save"))
-                }
-            }
-            .sheet(
-                item: $editorExercise,
-                content: { exercise in
-                    SetSheet(
-                        appExercises: viewModel.exercises,
-                        trainingExercise: exercise,
-                        onCancel: { editorExercise = nil },
-                        onSave: { updated in
-                            if let idx = training.exercises.firstIndex(where: {
-                                $0.id == updated.id
-                            }) {
-                                training.exercises[idx] = updated
-                            } else {
-                                training.exercises.append(updated)
-                            }
-                            editorExercise = nil
-                        }
+        ScrollView {
+            VStack(spacing: 20) {
+                headerCard
+                if viewModel.settings.timeTrainings {
+                    StopwatchCard(
+                        stopwatchSeconds: $training.duration
                     )
                 }
-            )
-            .sheet(isPresented: $showSetSheet) {
-                SetSheet(
-                    appExercises: viewModel.exercises,
-                    trainingExercise: nil,
-                    onCancel: { showSetSheet = false },
-                    onSave: { newEx in
-                        training.exercises.append(newEx)
-                        showSetSheet = false
-                    }
-                )
+                copyPreviousCard
+                exercisesCard
             }
+            .padding()
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(
+            "Training - \(training.date.formatted(date: .numeric, time: .omitted))"
+        )
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    saveTraining()
+                } label: {
+                    Image(systemName: "square.and.arrow.down")
+                }
+                .disabled(!canSave)
+                .opacity(canSave ? 1 : 0.5)
+                .accessibilityLabel(Text("save"))
+            }
+        }
+        .sheet(item: $editorExercise) { ex in
+            SetSheet(
+                onCancel: { editorExercise = nil },
+                onSave: { newEx in
+                    training.exercises.append(newEx)
+                    editorExercise = nil
+                },
+                trainingExercise: ex
+            )
         }
     }
 
     private var canSave: Bool {
-        guard let training else { return false }
-        return training.type != TrainingType.none && !training.exercises.isEmpty
+        return training.type != .none && !training.exercises.isEmpty
     }
 
     // MARK: - Cards
@@ -113,14 +78,14 @@ struct TrainingView: View {
                     Spacer()
                     Picker(
                         "category",
-                        selection: Binding<TrainingType>(
-                            get: { training?.type ?? .none },
-                            set: { newValue in training?.type = newValue }
-                        )
+                        selection: $training.type
                     ) {
                         Text("selectType").tag(TrainingType.none)
-                        ForEach(TrainingType.allCases, id: \.rawValue) { t in
-                            Text(t.rawValue.capitalized).tag(Optional(t))
+                        ForEach(
+                            TrainingType.allCases.filter { $0.self != .none },
+                            id: \.rawValue
+                        ) { t in
+                            Text(LocalizedStringKey(t.rawValue)).tag(t)
                         }
                     }
                     .pickerStyle(.menu)
@@ -130,10 +95,7 @@ struct TrainingView: View {
                         .foregroundColor(.secondary)
                     DatePicker(
                         "",
-                        selection: Binding(
-                            get: { training?.date ?? Date() },
-                            set: { training?.date = $0 }
-                        ),
+                        selection: $training.date,
                         displayedComponents: [.date]
                     )
                     .labelsHidden()
@@ -231,33 +193,32 @@ struct TrainingView: View {
                         String(
                             format: NSLocalizedString(
                                 "exercises_nr",
-                                comment: "\(training?.exercises.count ?? 0)"
+                                comment: "\(training.exercises.count)"
                             )
                         )
                     )
                     .font(.headline)
                     Spacer()
                     Button {
-                        showSetSheet = true
+                        editorExercise = TrainingExercise()
                     } label: {
                         Label("addExercise", systemImage: "plus")
                     }
-                    .disabled(viewModel.exercises.isEmpty)
                     .accessibilityIdentifier("addExerciseButton")
                 }
 
-                if training?.exercises.isEmpty == true {
+                if training.exercises.isEmpty == true {
                     Text("noExercises")
                         .foregroundColor(.gray)
                         .padding(.bottom, 8)
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(training?.exercises ?? []) { ex in
+                        ForEach(training.exercises) { ex in
                             ExerciseRowView(
                                 trainingExercise: ex,
                                 onEdit: { editorExercise = $0 },
                                 onDelete: {
-                                    training?.exercises.removeAll {
+                                    training.exercises.removeAll {
                                         $0.id == ex.id
                                     }
                                 }
@@ -272,13 +233,12 @@ struct TrainingView: View {
     // MARK: - Actions
 
     private func saveTraining() {
-        guard let training else { return }
         let exists = training.persistentBackingData.persistentModelID != nil
 
         if !exists {
             viewModel.addTraining(training)
         } else {
-            viewModel.updateTraining(training)
+            viewModel.saveContext()
         }
         dismiss()
     }
@@ -299,7 +259,7 @@ struct TrainingView: View {
                 trainingSets: ex.trainingSets  // value-copied if struct
             )
         }
-        training?.exercises.append(contentsOf: copied)
+        training.exercises.append(contentsOf: copied)
     }
 }
 
@@ -317,8 +277,15 @@ private struct ExerciseRowView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(trainingExercise.exercise)
+                    if trainingExercise.duration > 0 {
+                        Text(
+                            "\(LocalizedStringResource(stringLiteral: trainingExercise.exercise)) -  \(trainingExercise.duration, specifier: "%.0f")"
+                        )
                         .font(.subheadline)
+                    } else {
+                        Text(LocalizedStringKey(trainingExercise.exercise))
+                            .font(.subheadline)
+                    }
                     Text(summaryText(trainingExercise))
                         .font(.caption)
                         .foregroundColor(.gray)
@@ -343,12 +310,11 @@ private struct ExerciseRowView: View {
         .cornerRadius(8)
         .sheet(isPresented: $showEditor) {
             SetSheet(
-                appExercises: viewModel.exercises,
-                trainingExercise: trainingExercise,
                 onCancel: { showEditor = false },
                 onSave: { updated in
                     onEdit(updated)
-                }
+                },
+                trainingExercise: trainingExercise,
             )
         }
     }
@@ -378,7 +344,16 @@ extension Double {
 
 #Preview {
     @Previewable @Environment(\.modelContext) var context
-    TrainingView().environmentObject(
+    @Previewable @State var training = Training(
+        date: Date(),
+        duration: 0,
+        type: .none,
+        exercises: []
+    )
+
+    TrainingView(
+        training: training
+    ).environmentObject(
         AppViewModel(context: context)
     )
 }
