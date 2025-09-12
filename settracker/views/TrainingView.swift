@@ -55,10 +55,34 @@ struct TrainingView: View {
             SetSheet(
                 onCancel: { editorExercise = nil },
                 onSave: { newEx in
-                    training.exercises.append(newEx)
+                    if newEx.isNew {
+                        training.exercises.append(
+                            TrainingExercise(
+                                exercise: newEx.exercise,
+                                category: newEx.category!,
+                                duration: newEx.duration
+                            )
+                        )
+                    }
                     editorExercise = nil
                 },
-                trainingExercise: ex
+                trainingExercise: Binding(
+                    get: {
+                        .init(
+                            exercise: editorExercise!.exercise,
+                            sets: editorExercise!.trainingSets,
+                            category: editorExercise!.category,
+                            duration: editorExercise!.duration,
+                            isNew: false
+                        )
+                    },
+                    set: {
+                        editorExercise!.exercise = $0.exercise
+                        editorExercise!.trainingSets = $0.sets
+                        editorExercise!.category = $0.category!
+                        editorExercise!.duration = $0.duration
+                    }
+                )
             )
         }
     }
@@ -213,7 +237,7 @@ struct TrainingView: View {
                         .padding(.bottom, 8)
                 } else {
                     VStack(spacing: 10) {
-                        ForEach(training.exercises) { ex in
+                        ForEach($training.exercises) { ex in
                             ExerciseRowView(
                                 trainingExercise: ex,
                                 onEdit: { editorExercise = $0 },
@@ -267,11 +291,11 @@ struct TrainingView: View {
 private struct ExerciseRowView: View {
     @EnvironmentObject var viewModel: AppViewModel
 
-    var trainingExercise: TrainingExercise
+    @Binding var trainingExercise: TrainingExercise
     var onEdit: (TrainingExercise) -> Void
     var onDelete: () -> Void
 
-    @State private var showEditor = false
+    @State private var editorExercise: TrainingExercise? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -293,7 +317,7 @@ private struct ExerciseRowView: View {
                 Spacer()
                 HStack(spacing: 10) {
                     Button {
-                        showEditor = true
+                        editorExercise = nil
                     } label: {
                         Image(systemName: "pencil")
                     }
@@ -308,13 +332,33 @@ private struct ExerciseRowView: View {
         .padding(10)
         .background(Color(.systemGray6))
         .cornerRadius(8)
-        .sheet(isPresented: $showEditor) {
+        .sheet(item: $editorExercise) { editEx in
             SetSheet(
-                onCancel: { showEditor = false },
-                onSave: { updated in
-                    onEdit(updated)
+                onCancel: { editorExercise = nil },
+                onSave: { ex in
+                    trainingExercise.exercise = ex.exercise
+                    trainingExercise.trainingSets = ex.sets
+                    trainingExercise.category = ex.category!
+                    trainingExercise.duration = ex.duration
+                    editorExercise = nil
                 },
-                trainingExercise: trainingExercise,
+                trainingExercise: Binding(
+                    get: {
+                        .init(
+                            exercise: editEx.exercise,
+                            sets: editEx.trainingSets,
+                            category: editEx.category,
+                            duration: editEx.duration,
+                            isNew: false
+                        )
+                    },
+                    set: {
+                        editEx.exercise = $0.exercise
+                        editEx.trainingSets = $0.sets
+                        editEx.category = $0.category!
+                        editEx.duration = $0.duration
+                    }
+                ),
             )
         }
     }

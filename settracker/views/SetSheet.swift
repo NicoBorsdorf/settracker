@@ -10,15 +10,22 @@
 
 import SwiftUI
 
+struct CurrentTrainingExercise {
+    var exercise: String = ""
+    var sets: [TrainingSet] = []
+    var category: Category? = nil
+    var duration: Int = 0
+    var isNew: Bool = false
+}
+
 struct SetSheet: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject private var viewModle: AppViewModel
     // Data sources and callbacks
     var onCancel: () -> Void
-    var onSave: (TrainingExercise) -> Void
+    var onSave: (CurrentTrainingExercise) -> Void
 
-    // Editor state
-    @Bindable var trainingExercise: TrainingExercise
+    @Binding var trainingExercise: CurrentTrainingExercise
 
     var body: some View {
         NavigationStack {
@@ -164,13 +171,13 @@ struct SetSheet: View {
                     }
                 }
 
-                if trainingExercise.trainingSets.isEmpty {
+                if $trainingExercise.sets.isEmpty {
                     Text("noSets")
                         .font(.caption)
                         .foregroundColor(.gray)
                 } else {
                     List {
-                        ForEach($trainingExercise.trainingSets, id: \.id) {
+                        ForEach($trainingExercise.sets, id: \.id) {
                             set in
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack(spacing: 8) {
@@ -220,7 +227,7 @@ struct SetSheet: View {
                         .onDelete { offset in
                             withAnimation {
                                 offset.forEach { idx in
-                                    trainingExercise.trainingSets.remove(
+                                    trainingExercise.sets.remove(
                                         at: idx
                                     )
                                 }
@@ -234,14 +241,14 @@ struct SetSheet: View {
 
     // MARK: - Rows
     private var canSave: Bool {
-        return trainingExercise.category != .none
+        return trainingExercise.category != nil
             && (trainingExercise.category != .cardio
-                && !trainingExercise.trainingSets.isEmpty)
+                && !trainingExercise.sets.isEmpty)
     }
 
     // MARK: - Actions
     private func addSet() {
-        trainingExercise.trainingSets.append(
+        trainingExercise.sets.append(
             TrainingSet(
                 setId: Date().timeIntervalSince1970.hashValue,
                 reps: 10,
@@ -270,11 +277,35 @@ struct SetSheet: View {
 
 #Preview {
     @Previewable @Environment(\.modelContext) var context
+    @Previewable @State var t = TrainingExercise(
+        exercise: "",
+        category: .none,
+        duration: 0,
+        trainingSets: []
+    )
+
     let viewModel = AppViewModel(context: context)
+    
     SetSheet(
         onCancel: {},
         onSave: { _ in },
-        trainingExercise: TrainingExercise()
+        trainingExercise: Binding(
+            get: {
+                .init(
+                    exercise: t.exercise,
+                    sets: t.trainingSets,
+                    category: t.category,
+                    duration: t.duration,
+                    isNew: false
+                )
+            },
+            set: {
+                t.exercise = $0.exercise
+                t.trainingSets = $0.sets
+                t.category = $0.category!
+                t.duration = $0.duration
+            }
+        )
     )
     .environmentObject(viewModel)
 }
